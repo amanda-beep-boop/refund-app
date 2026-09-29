@@ -1,0 +1,433 @@
+// ---------------------------------------------------------------------------
+// Mock data. In the real feature all of this comes from the backend:
+// customers + fees from the payment system of record, requests from the
+// refund-request service. Amounts are integer cents.
+// ---------------------------------------------------------------------------
+
+export const SUBMITTER = { name: 'You', email: 'you@agency.example' };
+export const OCFO = { name: 'OCFO Refund Review', email: 'refunds@ocfo.example' };
+
+export const JUSTIFICATIONS = [
+  { value: 'duplicate', label: 'Duplicate payment' },
+  { value: 'billing', label: 'Billing error' },
+  { value: 'notrendered', label: 'Service not rendered' },
+  { value: 'overpay', label: 'Overpayment' },
+  { value: 'waived', label: 'Fee waived' },
+  { value: 'other', label: 'Other reason' },
+];
+
+export const JUSTIFICATION_LABEL = Object.fromEntries(
+  JUSTIFICATIONS.map((j) => [j.value, j.label])
+);
+
+// Each fee carries its own remitter from the payment record (or null when the
+// record has none). remitter.method: "original" = refund to the instrument the
+// fee was paid with; "check" = paper check to the address.
+export const CUSTOMERS = {
+  'C-104822': {
+    id: 'C-104822',
+    name: 'Marisol Ortega',
+    team: 'Metro Transit Authority',
+    position: 'Procurement Manager',
+    accountOpened: '2019-03-14',
+    fees: [
+      {
+        id: 'F-88012',
+        desc: 'Annual filing fee',
+        date: '2026-07-02',
+        cents: 45000,
+        bank: 'Truist',
+        acct: '••••4471',
+        method: 'ACH',
+        card: '—',
+        instrument: 'ACH to Truist ••••4471',
+        remitter: {
+          name: 'Metro Transit Authority – Accounts Payable',
+          address: '600 Fifth St NW, Washington, DC 20001',
+          method: 'original',
+          email: 'ap@mta.example',
+        },
+      },
+      {
+        id: 'F-88107',
+        desc: 'Late processing surcharge',
+        date: '2026-07-19',
+        cents: 7500,
+        bank: 'Truist',
+        acct: '••••4471',
+        method: 'Credit card',
+        card: 'Visa ••••2210',
+        instrument: 'Visa ••••2210',
+        remitter: {
+          name: 'Marisol Ortega',
+          address: '1400 Wilson Blvd, Suite 610, Arlington, VA 22209',
+          method: 'original',
+          email: 'm.ortega@mta.example',
+        },
+      },
+      {
+        id: 'F-88230',
+        desc: 'Q3 permit bundle',
+        date: '2026-08-05',
+        cents: 124000,
+        bank: 'PayPal',
+        acct: 'm.ortega@mta.example',
+        method: 'PayPal',
+        card: '—',
+        instrument: 'PayPal (m.ortega@mta.example)',
+        items: [
+          { desc: 'Vehicle permit renewal ×4', cents: 80000 },
+          { desc: 'Inspection scheduling fee', cents: 24000 },
+          { desc: 'Expedite fee', cents: 20000 },
+        ],
+        remitter: {
+          name: 'Marisol Ortega',
+          address: '1400 Wilson Blvd, Suite 610, Arlington, VA 22209',
+          method: 'original',
+          email: 'm.ortega@mta.example',
+        },
+      },
+      {
+        id: 'F-88311',
+        desc: 'Duplicate certificate fee',
+        date: '2026-08-22',
+        cents: 3500,
+        bank: 'Capital One',
+        acct: '••••9083',
+        method: 'Debit card',
+        card: 'Mastercard ••••7745',
+        instrument: 'Mastercard ••••7745',
+        remitter: null,
+      },
+    ],
+  },
+  'C-220917': {
+    id: 'C-220917',
+    name: 'Devin Achterberg',
+    team: 'Parks & Recreation',
+    position: 'Facilities Coordinator',
+    accountOpened: '2023-11-01',
+    fees: [
+      {
+        id: 'F-90411',
+        desc: 'Field reservation deposit',
+        date: '2026-06-11',
+        cents: 30000,
+        bank: 'Navy Federal',
+        acct: '••••1120',
+        method: 'ACH',
+        card: '—',
+        instrument: 'ACH to Navy Federal ••••1120',
+        remitter: {
+          name: 'Devin Achterberg',
+          address: '2100 Clarendon Blvd, Arlington, VA 22201',
+          method: 'original',
+          email: 'd.achterberg@parks.example',
+        },
+      },
+      {
+        id: 'F-90520',
+        desc: 'Shared event costs',
+        date: '2026-06-28',
+        cents: 51250,
+        bank: 'Splitwise',
+        acct: 'd.achterberg',
+        method: 'Splitwise',
+        card: '—',
+        instrument: 'Splitwise (d.achterberg)',
+        items: [
+          { desc: 'Tent rental share', cents: 21250 },
+          { desc: 'Portable restroom share', cents: 18000 },
+          { desc: 'Cleanup crew share', cents: 12000 },
+        ],
+        remitter: {
+          name: 'Devin Achterberg',
+          address: '2100 Clarendon Blvd, Arlington, VA 22201',
+          method: 'original',
+          email: 'd.achterberg@parks.example',
+        },
+      },
+    ],
+  },
+  'C-301550': {
+    id: 'C-301550',
+    name: 'Priya Raman',
+    team: 'Office of Housing',
+    position: 'Grants Analyst',
+    accountOpened: '2024-05-20',
+    fees: [
+      {
+        id: 'F-91002',
+        desc: 'Application processing fee',
+        date: '2026-09-03',
+        cents: 12000,
+        bank: 'Wells Fargo',
+        acct: '••••3391',
+        method: 'Credit card',
+        card: 'Amex ••••1009',
+        instrument: 'Amex ••••1009',
+        remitter: {
+          name: 'Priya Raman',
+          address: '3500 Fairfax Dr, Arlington, VA 22203',
+          method: 'original',
+          email: 'p.raman@housing.example',
+        },
+      },
+    ],
+  },
+};
+
+const R = (name, address, method, email) => ({
+  name,
+  address,
+  method: method || 'original',
+  email: email || null,
+});
+
+export const buildNotifications = (at, remitters) => [
+  { role: 'Submitter', name: SUBMITTER.name, to: SUBMITTER.email, at },
+  { role: 'OCFO', name: OCFO.name, to: OCFO.email, at },
+  ...remitters.map((r) => ({ role: 'Remitter', name: r.name, to: r.email, at })),
+];
+
+export const SEED_REQUESTS = [
+  {
+    id: 'RR-2026-0142',
+    customer: 'C-220917',
+    submittedAt: '2026-06-18T10:14:00',
+    status: 'approved',
+    statusDate: '2026-07-09',
+    submittedBy: SUBMITTER,
+    attestedAt: '2026-06-18T10:14:00',
+    justification: { code: 'duplicate', text: '' },
+    fees: [
+      {
+        id: 'F-89870',
+        desc: 'Field reservation deposit (spring)',
+        date: '2026-04-02',
+        cents: 30000,
+        refund: 30000,
+        bank: 'Navy Federal',
+        acct: '••••1120',
+        method: 'ACH',
+        card: '—',
+        instrument: 'ACH to Navy Federal ••••1120',
+        remitter: R(
+          'Devin Achterberg',
+          '2100 Clarendon Blvd, Arlington, VA 22201',
+          'original',
+          'd.achterberg@parks.example'
+        ),
+        remitterSource: 'record',
+        recordRemitter: null,
+      },
+    ],
+    timeline: [
+      { status: 'submitted', at: '2026-06-18T10:14:00' },
+      { status: 'review', at: '2026-06-20T09:30:00' },
+      { status: 'approved', at: '2026-07-09T15:02:00' },
+    ],
+    notifications: buildNotifications('2026-06-18T10:14:00', [
+      R('Devin Achterberg', '', '', 'd.achterberg@parks.example'),
+    ]),
+  },
+  {
+    id: 'RR-2026-0151',
+    customer: 'C-104822',
+    submittedAt: '2026-07-01T15:40:00',
+    status: 'approved',
+    statusDate: '2026-07-22',
+    submittedBy: SUBMITTER,
+    attestedAt: '2026-07-01T15:40:00',
+    justification: { code: 'billing', text: '' },
+    fees: [
+      {
+        id: 'F-87455',
+        desc: 'Inspection rescheduling fee',
+        date: '2026-05-14',
+        cents: 22000,
+        refund: 22000,
+        bank: 'Truist',
+        acct: '••••4471',
+        method: 'ACH',
+        card: '—',
+        instrument: 'ACH to Truist ••••4471',
+        remitter: R(
+          'Metro Transit Authority – Accounts Payable',
+          '600 Fifth St NW, Washington, DC 20001',
+          'original',
+          'ap@mta.example'
+        ),
+        remitterSource: 'record',
+        recordRemitter: null,
+      },
+    ],
+    timeline: [
+      { status: 'submitted', at: '2026-07-01T15:40:00' },
+      { status: 'review', at: '2026-07-03T11:12:00' },
+      { status: 'approved', at: '2026-07-22T16:45:00' },
+    ],
+    notifications: buildNotifications('2026-07-01T15:40:00', [
+      R('Metro Transit Authority – Accounts Payable', '', '', 'ap@mta.example'),
+    ]),
+  },
+  {
+    id: 'RR-2026-0169',
+    customer: 'C-220917',
+    submittedAt: '2026-07-24T09:02:00',
+    status: 'review',
+    statusDate: '2026-07-28',
+    submittedBy: SUBMITTER,
+    attestedAt: '2026-07-24T09:02:00',
+    justification: { code: 'overpay', text: '' },
+    fees: [
+      {
+        id: 'F-89901',
+        desc: 'Vendor badge fee',
+        date: '2026-06-30',
+        cents: 14500,
+        refund: 9500,
+        bank: 'Navy Federal',
+        acct: '••••1120',
+        method: 'Debit card',
+        card: 'Visa ••••0417',
+        instrument: 'Visa ••••0417',
+        remitter: R(
+          'Devin Achterberg',
+          '2100 Clarendon Blvd, Arlington, VA 22201',
+          'original',
+          'd.achterberg@parks.example'
+        ),
+        remitterSource: 'record',
+        recordRemitter: null,
+      },
+    ],
+    timeline: [
+      { status: 'submitted', at: '2026-07-24T09:02:00' },
+      { status: 'review', at: '2026-07-28T13:20:00' },
+    ],
+    notifications: buildNotifications('2026-07-24T09:02:00', [
+      R('Devin Achterberg', '', '', 'd.achterberg@parks.example'),
+    ]),
+  },
+  {
+    id: 'RR-2026-0187',
+    customer: 'C-104822',
+    submittedAt: '2026-08-11T14:22:00',
+    status: 'review',
+    statusDate: '2026-08-14',
+    submittedBy: SUBMITTER,
+    attestedAt: '2026-08-11T14:22:00',
+    justification: { code: 'notrendered', text: '' },
+    fees: [
+      {
+        id: 'F-87990',
+        desc: 'Expedited review fee',
+        date: '2026-07-08',
+        cents: 18000,
+        refund: 18000,
+        bank: 'Truist',
+        acct: '••••4471',
+        method: 'ACH',
+        card: '—',
+        instrument: 'ACH to Truist ••••4471',
+        remitter: R(
+          'Marisol Ortega',
+          '1400 Wilson Blvd, Suite 610, Arlington, VA 22209',
+          'check',
+          null
+        ),
+        remitterSource: 'customized',
+        recordRemitter: R(
+          'Metro Transit Authority – Accounts Payable',
+          '600 Fifth St NW, Washington, DC 20001',
+          'original',
+          'ap@mta.example'
+        ),
+      },
+    ],
+    timeline: [
+      { status: 'submitted', at: '2026-08-11T14:22:00' },
+      { status: 'review', at: '2026-08-14T09:05:00' },
+    ],
+    notifications: buildNotifications('2026-08-11T14:22:00', [
+      R('Marisol Ortega', '', 'check', null),
+    ]),
+  },
+  {
+    id: 'RR-2026-0203',
+    customer: 'C-301550',
+    submittedAt: '2026-09-02T11:30:00',
+    status: 'returned',
+    statusDate: '2026-09-10',
+    submittedBy: SUBMITTER,
+    attestedAt: '2026-09-02T11:30:00',
+    justification: {
+      code: 'other',
+      text: 'Applicant withdrew before the application was reviewed; fee is refundable under §4.2 of the program rules.',
+    },
+    fees: [
+      {
+        id: 'F-90877',
+        desc: 'Application processing fee (2025 cycle)',
+        date: '2026-05-15',
+        cents: 12000,
+        refund: 12000,
+        bank: 'Wells Fargo',
+        acct: '••••3391',
+        method: 'Credit card',
+        card: 'Amex ••••1009',
+        instrument: 'Amex ••••1009',
+        remitter: R('Priya Raman', '3500 Fairfax Dr, Arlington, VA 22203', 'original', null),
+        remitterSource: 'manual',
+        recordRemitter: null,
+      },
+    ],
+    timeline: [
+      { status: 'submitted', at: '2026-09-02T11:30:00' },
+      { status: 'review', at: '2026-09-04T10:00:00' },
+      {
+        status: 'returned',
+        at: '2026-09-10T16:18:00',
+        note: 'Remitter address does not match the W-9 on file. Confirm the remitter and resubmit.',
+      },
+    ],
+    notifications: buildNotifications('2026-09-02T11:30:00', [R('Priya Raman', '', '', null)]),
+  },
+  {
+    id: 'RR-2026-0205',
+    customer: 'C-220917',
+    submittedAt: '2026-09-19T16:05:00',
+    status: 'submitted',
+    statusDate: '2026-09-19',
+    submittedBy: SUBMITTER,
+    attestedAt: '2026-09-19T16:05:00',
+    justification: { code: 'waived', text: '' },
+    fees: [
+      {
+        id: 'F-90588',
+        desc: 'Key deposit',
+        date: '2026-08-01',
+        cents: 6000,
+        refund: 6000,
+        bank: 'Navy Federal',
+        acct: '••••1120',
+        method: 'ACH',
+        card: '—',
+        instrument: 'ACH to Navy Federal ••••1120',
+        remitter: R(
+          'Devin Achterberg',
+          '2100 Clarendon Blvd, Arlington, VA 22201',
+          'original',
+          'd.achterberg@parks.example'
+        ),
+        remitterSource: 'record',
+        recordRemitter: null,
+      },
+    ],
+    timeline: [{ status: 'submitted', at: '2026-09-19T16:05:00' }],
+    notifications: buildNotifications('2026-09-19T16:05:00', [
+      R('Devin Achterberg', '', '', 'd.achterberg@parks.example'),
+    ]),
+  },
+].map((r) => ({ ...r, total: r.fees.reduce((s, f) => s + f.refund, 0) }));
