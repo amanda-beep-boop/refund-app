@@ -14,8 +14,17 @@ import {
   PageOrientation,
 } from 'docx';
 import { CUSTOMERS, JUSTIFICATION_LABEL } from '../data/mockData';
-import { fmt, fmtDate, fmtDateTime, nowISO, todayISO, methodLabel } from './format';
-import { remitterNotes } from './selectors';
+import { fmt, fmtDate, fmtDateTime, nowISO, todayISO } from './format';
+import {
+  remitterNotes,
+  requestActivity,
+  justificationDefinition,
+  paidLabel,
+  refundMethodLabel,
+  refundExtentLabel,
+  deliveryLabel,
+  enoteTitle,
+} from './selectors';
 import { STATUS_META } from '../theme';
 
 // In production these documents would be generated server-side so the OCFO
@@ -37,17 +46,20 @@ const HEADERS = [
   'Request ID',
   'Customer',
   'Customer ID',
+  'Requested by',
   'Date submitted',
   'Status',
   'Status date',
   'Amount',
 ];
+const AMOUNT_COL = HEADERS.indexOf('Amount');
 
 const rowArrays = (rows) =>
   rows.map((r) => [
     r.id,
     CUSTOMERS[r.customer].name,
     r.customer,
+    r.requestedBy,
     fmtDate(r.submittedAt),
     STATUS_META[r.status].label,
     fmtDate(r.statusDate),
@@ -80,7 +92,7 @@ export function downloadHistoryPdf(rows) {
     startY: 78,
     styles: { fontSize: 9, cellPadding: 5 },
     headStyles: { fillColor: [0, 113, 187], textColor: 255 },
-    columnStyles: { 6: { halign: 'right' } },
+    columnStyles: { [AMOUNT_COL]: { halign: 'right' } },
   });
   saveBlob(
     `fee-refund-requests-${todayISO()}.pdf`,
@@ -103,7 +115,7 @@ export async function downloadHistoryDocx(rows) {
     rows: [
       new TableRow({ tableHeader: true, children: HEADERS.map((t) => cell(t, { bold: true })) }),
       ...rowArrays(rows).map(
-        (r) => new TableRow({ children: r.map((v, i) => cell(v, { right: i === 6 })) })
+        (r) => new TableRow({ children: r.map((v, i) => cell(v, { right: i === AMOUNT_COL })) })
       ),
     ],
   });
@@ -127,126 +139,193 @@ export async function downloadHistoryDocx(rows) {
   saveBlob(`fee-refund-requests-${todayISO()}.docx`, blob);
 }
 
+// Mirrors the request modal: a snapshot of the submitted request, then Activity. All wording
+// comes from the same selectors the modal uses, so the record and its download never disagree.
 export function downloadRequestPdf(request) {
   const c = CUSTOMERS[request.customer];
   const doc = new jsPDF({ unit: 'pt', format: 'letter' });
   const width = doc.internal.pageSize.getWidth();
+  const height = doc.internal.pageSize.getHeight();
+  const M = 40;
+  const inner = width - M * 2;
+  // The modal's palette: dark text, the one secondary gray, subtle rules, the inset surface.
+  const DARK = [33, 37, 41];
+  const GRAY = [79, 89, 102];
+  const RULE = [222, 226, 230];
+  const INSET = [238, 241, 244];
+  const base = { fontSize: 9.5, cellPadding: { top: 4, right: 6, bottom: 4, left: 0 }, textColor: DARK };
+  const labelStyle = { textColor: GRAY, fontStyle: 'bold' };
+  const gray = (content) => ({ content, styles: { textColor: GRAY } });
+  const after = (gap = 18) => doc.lastAutoTable.finalY + gap;
+  const room = (y, need) => (y + need > height - 50 ? (doc.addPage(), 50) : y);
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.text(`Fee Refund Request ${request.id}`, 40, 50);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(90);
-  doc.text(
-    `Status: ${STATUS_META[request.status].label} (${fmtDate(request.statusDate)}) · Routed to the Office of the Chief Financial Officer, Refund Review`,
-    40,
-    66
-  );
-  doc.setTextColor(0);
+  const setText = (size, style = 'normal', color = DARK) => {
+    doc.setFont('helvetica', style);
+    doc.setFontSize(size);
+    doc.setTextColor(...color);
+  };
+
+  // Title and current state.
+  setText(18, 'bold');
+  doc.text(`Fee Refund Request ${request.id}`, M, 50);
+  setText(10, 'normal', GRAY);
+  doc.text(`Status: ${STATUS_META[request.status].label}, as of ${fmtDate(request.statusDate)}`, M, 68);
+  let y = 84;
+  const latest = request.timeline[request.timeline.length - 1];
+  if (latest.note) {
+    doc.text(
+      `${STATUS_META[latest.status].label} on ${fmtDateTime(latest.at)}. The OCFO's note is under Activity.`,
+      M,
+      y
+    );
+    y += 16;
+  }
+
+  // Submitted request: header strip, parties, justification, fees, notes, certification.
+  y += 6;
+  doc.setFillColor(...INSET);
+  doc.setDrawColor(...RULE);
+  doc.rect(M, y, inner, 26, 'FD');
+  setText(12, 'bold');
+  doc.text('Submitted request', M + 10, y + 17);
+  y += 34;
 
   autoTable(doc, {
-    body: [
-      ['Submitted', `${fmtDateTime(request.submittedAt)} by ${request.submittedBy.name} (${request.submittedBy.email})`],
-      ['Customer', `${c.name} · ${c.id} · ${c.team}, ${c.position}`],
-      [
-        'Justification',
-        JUSTIFICATION_LABEL[request.justification.code] +
-          (request.justification.text ? ` — ${request.justification.text}` : ''),
-      ],
-      ['Total refund', fmt(request.total)],
-    ],
-    startY: 80,
+    startY: y,
+    margin: { left: M + 10, right: M + 10 },
     theme: 'plain',
-    styles: { fontSize: 10, cellPadding: 4 },
-    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 110 } },
+    styles: base,
+    headStyles: labelStyle,
+    head: [['Customer', 'Requested by']],
+    body: [
+      [
+        `${c.name}\nCustomer ID ${c.id}\n${c.team}, ${c.position}`,
+        `${request.submittedBy.name}\n${request.submittedBy.email}`,
+      ],
+    ],
   });
 
-  let y = doc.lastAutoTable.finalY + 18;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('Fees', 40, y);
+  const j = request.justification;
   autoTable(doc, {
-    head: [['Fee', 'Paid', 'Paid amount', 'Refund', 'Remit to']],
+    startY: after(10),
+    margin: { left: M + 10, right: M + 10 },
+    theme: 'plain',
+    styles: base,
+    headStyles: labelStyle,
+    head: [['Justification']],
+    body: [
+      [JUSTIFICATION_LABEL[j.code]],
+      [gray(`Definition at the time of submission: ${justificationDefinition(j)}`)],
+      ...(j.text
+        ? [[{ content: 'Submitter’s explanation', styles: { ...labelStyle, cellPadding: { top: 10, bottom: 2, left: 0 } } }], [j.text]]
+        : []),
+    ],
+  });
+
+  const ruled = (bottom) => ({ lineColor: RULE, lineWidth: { bottom } });
+  autoTable(doc, {
+    startY: after(14),
+    margin: { left: M + 10, right: M + 10 },
+    theme: 'plain',
+    styles: base,
+    headStyles: { ...labelStyle, ...ruled(0.75) },
+    bodyStyles: ruled(0.5),
+    footStyles: { fontStyle: 'bold', textColor: DARK },
+    head: [['Fee', 'Paid', 'Refund to', { content: 'Refund', styles: { halign: 'right' } }]],
     body: request.fees.map((f) => [
-      `${f.desc}\n${f.id}`,
-      `${fmtDate(f.date)}\n${f.method}${f.card !== '—' ? ' ' + f.card : ''}`,
-      fmt(f.cents),
-      fmt(f.refund) + (f.refund < f.cents ? '\n(partial)' : ''),
-      `${f.remitter.name}\n${f.remitter.address}\n${methodLabel(f, f.remitter.method)}${
+      `${f.desc}\nFee ID ${f.id}${f.items ? `\nLump sum of ${f.items.length} items` : ''}`,
+      `${fmtDate(f.date)}\n${paidLabel(f)}`,
+      `${f.remitter.name}\n${f.remitter.address}\n${refundMethodLabel(f)}${
         f.remitterSource === 'manual'
           ? '\nEntered manually'
           : f.remitterSource === 'customized'
             ? '\nChanged from payment record'
             : ''
       }`,
+      { content: `${fmt(f.refund)}\n${refundExtentLabel(f)}`, styles: { halign: 'right' } },
     ]),
-    startY: y + 8,
-    styles: { fontSize: 9, cellPadding: 5 },
-    headStyles: { fillColor: [0, 113, 187], textColor: 255 },
-    columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { cellWidth: 190 } },
+    foot: [
+      [
+        { content: 'Total refund requested', colSpan: 3, styles: { halign: 'right' } },
+        { content: fmt(request.total), styles: { halign: 'right' } },
+      ],
+    ],
+    columnStyles: { 0: { cellWidth: 130 }, 1: { cellWidth: 120 }, 3: { cellWidth: 80 } },
   });
 
-  y = doc.lastAutoTable.finalY + 18;
   const notes = remitterNotes(
     request.fees,
     (f) => f.remitterSource,
     (f) => f.recordRemitter
   );
-  if (notes.length) {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text('Remitter notes', 40, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9.5);
-    notes.forEach((n) => {
-      const lines = doc.splitTextToSize(`• ${n.feeId} — ${n.text}`, width - 80);
-      y += 14;
-      doc.text(lines, 40, y);
-      y += (lines.length - 1) * 12;
+  if (notes.length)
+    autoTable(doc, {
+      startY: after(10),
+      margin: { left: M + 10, right: M + 10 },
+      theme: 'plain',
+      styles: base,
+      headStyles: labelStyle,
+      head: [['Remitter notes']],
+      body: notes.map((n) => [`${n.feeId}: ${n.text}`]),
     });
-    y += 18;
-  }
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('Status history', 40, y);
-  autoTable(doc, {
-    body: request.timeline.map((t) => [STATUS_META[t.status].label, fmtDateTime(t.at), t.note || '']),
-    startY: y + 8,
-    theme: 'plain',
-    styles: { fontSize: 9.5, cellPadding: 4 },
-    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 150 }, 1: { cellWidth: 140 } },
-  });
-
-  y = doc.lastAutoTable.finalY + 18;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('Notifications sent', 40, y);
-  autoTable(doc, {
-    body: request.notifications.map((n) => [
-      n.role,
-      n.name,
-      n.to || 'Notified by mail to the remittance address',
-    ]),
-    startY: y + 8,
-    theme: 'plain',
-    styles: { fontSize: 9.5, cellPadding: 4 },
-    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 90 } },
-  });
-
-  y = doc.lastAutoTable.finalY + 20;
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(9);
-  doc.setTextColor(90);
-  doc.text(
-    doc.splitTextToSize(
-      `Certified and submitted by ${request.submittedBy.name} on ${fmtDateTime(request.certifiedAt)}. Generated ${fmtDateTime(nowISO())}.`,
-      width - 80
-    ),
-    40,
-    y
+  // Certification closes the record, like a signature line.
+  setText(9.5);
+  const certLines = doc.splitTextToSize(
+    `Certified and submitted by ${request.submittedBy.name} on ${fmtDateTime(request.certifiedAt)}. Routed to the Office of the Chief Financial Officer (OCFO), Refund Review.`,
+    inner - 20
   );
+  const certHeight = 30 + certLines.length * 12;
+  y = room(after(12), certHeight);
+  doc.setFillColor(...INSET);
+  doc.setDrawColor(...RULE);
+  doc.rect(M, y, inner, certHeight, 'FD');
+  setText(9.5, 'bold', GRAY);
+  doc.text('Certification', M + 10, y + 16);
+  setText(9.5);
+  doc.text(certLines, M + 10, y + 30);
+  y += certHeight + 26;
+
+  // Activity: everything after submission, oldest first, matching the modal's timeline.
+  y = room(y, 60);
+  setText(12, 'bold');
+  doc.text('Activity', M, y);
+  autoTable(doc, {
+    startY: y + 8,
+    margin: { left: M, right: M },
+    theme: 'plain',
+    styles: base,
+    columnStyles: { 0: { cellWidth: 130, textColor: GRAY } },
+    body: requestActivity(request).flatMap((e) => {
+      // Extra space above each event's first row separates events from one another.
+      const lead = { cellPadding: { top: 10, right: 6, bottom: 2, left: 0 } };
+      const rows = [
+        [
+          { content: fmtDateTime(e.at), styles: lead },
+          {
+            content: e.kind === 'enote' ? enoteTitle(e) : STATUS_META[e.status].label,
+            styles: { ...lead, fontStyle: 'bold' },
+          },
+        ],
+      ];
+      if (e.kind === 'enote')
+        e.notified.forEach((n) => rows.push(['', `${n.role}: ${n.name}\n${deliveryLabel(n)}`]));
+      if (e.note) {
+        rows.push(['', { content: 'Note from the OCFO', styles: labelStyle }]);
+        rows.push(['', e.note]);
+      }
+      return rows;
+    }),
+  });
+
+  // Footer on every page: when this copy was generated.
+  const generated = `Generated ${fmtDateTime(nowISO())}`;
+  const pages = doc.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i);
+    setText(8, 'normal', GRAY);
+    doc.text(`${generated}. ${request.id}, page ${i} of ${pages}.`, M, height - 24);
+  }
 
   saveBlob(`${request.id}.pdf`, new Blob([doc.output('arraybuffer')], { type: 'application/pdf' }));
 }

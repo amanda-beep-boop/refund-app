@@ -1,6 +1,12 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import { notifications } from '@mantine/notifications';
-import { CUSTOMERS, SEED_REQUESTS, SUBMITTER, buildNotifications } from '../data/mockData';
+import {
+  CUSTOMERS,
+  SEED_REQUESTS,
+  SUBMITTER,
+  JUSTIFICATION_DEFINITION,
+  buildNotifications,
+} from '../data/mockData';
 import { nowISO } from '../lib/format';
 import {
   draftCustomer,
@@ -48,7 +54,7 @@ export function RefundProvider({ children }) {
 
   const saveAndExit = () => {
     setView('home');
-    notifications.show({ message: 'Draft saved', color: 'ocfo' });
+    notifications.show({ message: 'Draft saved', color: 'brand' });
   };
 
   const resumeDraft = () => setView('flow');
@@ -96,7 +102,7 @@ export function RefundProvider({ children }) {
       editing: false,
       touched: false,
     });
-    notifications.show({ message: 'Remitter restored from the payment record', color: 'ocfo' });
+    notifications.show({ message: 'Remitter restored from the payment record', color: 'brand' });
   };
 
   const setJustification = (patch) =>
@@ -156,7 +162,11 @@ export function RefundProvider({ children }) {
           statusDate: at.slice(0, 10),
           submittedBy: SUBMITTER,
           certifiedAt: at,
-          justification: { ...d.justification, text: d.justification.text.trim() },
+          justification: {
+            ...d.justification,
+            text: d.justification.text.trim(),
+            definition: JUSTIFICATION_DEFINITION[d.justification.code],
+          },
           fees,
           total: fees.reduce((s, f) => s + f.refund, 0),
           timeline: [{ status: 'submitted', at }],

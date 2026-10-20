@@ -1,5 +1,5 @@
-import { CUSTOMERS } from '../data/mockData';
-import { parseCents, dollars, methodLabel } from './format';
+import { CUSTOMERS, JUSTIFICATION_DEFINITION } from '../data/mockData';
+import { parseCents, dollars, fmt, methodLabel } from './format';
 
 // Pure helpers over the draft shape:
 // draft = {
@@ -88,3 +88,40 @@ export const remitterNotes = (fees, getSource, getRecord) =>
       };
     })
     .filter(Boolean);
+
+// Wording for a submitted request's record. Shared by the request modal and its PDF so the two
+// always say the same thing; stated literally, since the record is used for legal purposes.
+
+// The card number is joined with non-breaking spaces so it never splits across lines.
+export const paidLabel = (f) =>
+  `${fmt(f.cents)} by ${f.method}${f.card !== '—' ? ` ${f.card.replace(/ /g, ' ')}` : ''}`;
+
+export const refundMethodLabel = (f) =>
+  f.remitter.method === 'check'
+    ? 'Refund method: paper check mailed to this address'
+    : `Refund method: returned to the original payment, ${f.instrument}`;
+
+export const refundExtentLabel = (f) => (f.refund < f.cents ? 'Partial refund' : 'Full refund');
+
+export const deliveryLabel = (n) =>
+  n.to ? `Emailed to ${n.to}` : 'Mailed to the remittance address (no email on file)';
+
+// Requests store the definition in force when they were certified; older records predate that,
+// so they fall back to the current one.
+export const justificationDefinition = (j) => j.definition ?? JUSTIFICATION_DEFINITION[j.code];
+
+// Status changes and E-Note deliveries as one chronological list. Notifications sent at the same
+// moment form one E-Note entry, placed right after the status change that triggered it.
+export const requestActivity = (request) => {
+  const events = request.timeline.map((t) => ({ ...t, kind: 'status' }));
+  [...new Set(request.notifications.map((n) => n.at))].forEach((at) =>
+    events.push({ kind: 'enote', at, notified: request.notifications.filter((n) => n.at === at) })
+  );
+  const order = { status: 0, enote: 1 };
+  return events.sort((a, b) =>
+    a.at < b.at ? -1 : a.at > b.at ? 1 : order[a.kind] - order[b.kind]
+  );
+};
+
+export const enoteTitle = (e) =>
+  `E-Note sent ${e.notified.length} notification${e.notified.length === 1 ? '' : 's'}`;

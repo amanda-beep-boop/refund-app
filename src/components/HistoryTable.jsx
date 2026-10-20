@@ -12,18 +12,20 @@ import {
   TextInput,
   Title,
   UnstyledButton,
+  VisuallyHidden,
 } from '@mantine/core';
 import { useRefund } from '../state/RefundContext';
-import { CUSTOMERS } from '../data/mockData';
+import { CUSTOMERS, SUBMITTER } from '../data/mockData';
 import { STATUS_META } from '../theme';
-import { fmt, fmtDate } from '../lib/format';
+import { fmtDate } from '../lib/format';
 import { downloadHistoryCsv, downloadHistoryPdf, downloadHistoryDocx } from '../lib/exports';
-import { StatusBadge, Mono } from './shared';
+import { StatusBadge, Mono, Amount, Chevron } from './shared';
 import RequestModal from './RequestModal';
 
 const COLUMNS = [
   { key: 'id', label: 'Request ID' },
   { key: 'customer', label: 'Customer' },
+  { key: 'requestedBy', label: 'Requested by' },
   { key: 'submittedAt', label: 'Date submitted' },
   { key: 'status', label: 'Status' },
   { key: 'statusDate', label: 'Status date' },
@@ -42,6 +44,7 @@ export default function HistoryTable() {
       id: r.id,
       isDraft: false,
       customer: r.customer,
+      requestedBy: r.submittedBy.name,
       submittedAt: r.submittedAt,
       status: r.status,
       statusDate: r.statusDate,
@@ -52,6 +55,8 @@ export default function HistoryTable() {
         id: null,
         isDraft: true,
         customer: draft.customer,
+        // Drafts are private to the signed-in user.
+        requestedBy: SUBMITTER.name,
         submittedAt: null,
         status: 'draft',
         statusDate: draft.startedAt.slice(0, 10),
@@ -73,6 +78,8 @@ export default function HistoryTable() {
           (r.id || '').toLowerCase().includes(q))
     );
     const dir = sort.dir === 'asc' ? 1 : -1;
+    // A draft has no submission date but is the request being worked on now, so by date
+    // submitted it counts as the newest: first in the default (newest-first) order.
     const value = (r) =>
       sort.key === 'customer'
         ? CUSTOMERS[r.customer].name
@@ -80,7 +87,9 @@ export default function HistoryTable() {
           ? STATUS_META[r.status].label
           : sort.key === 'total'
             ? (r.total ?? -1)
-            : (r[sort.key] ?? '');
+            : sort.key === 'submittedAt' && r.isDraft
+              ? '￿'
+              : (r[sort.key] ?? '');
     return [...filtered].sort((a, b) => {
       const x = value(a);
       const y = value(b);
@@ -113,14 +122,15 @@ export default function HistoryTable() {
 
   return (
     <Paper withBorder radius="sm">
-      <Group justify="space-between" p="md" pb="sm" wrap="wrap">
+      <div style={{ padding: 'var(--mantine-spacing-md) var(--mantine-spacing-md) var(--mantine-spacing-sm)' }}>
         <Title order={2} fz="lg">
-          Your refund requests
+          Previous Requests
         </Title>
-        <Text fz="sm" c="var(--text-secondary)">
-          Click a request ID to view the full request.
+        <Text fz="sm" c="dimmed" mt={2}>
+          Refund requests submitted by you and others in your office. Select a request ID to view
+          the full request. Check rows to download only those.
         </Text>
-      </Group>
+      </div>
 
       <Group px="md" pb="md" gap="sm" align="flex-end" wrap="wrap">
         <Select
@@ -155,7 +165,7 @@ export default function HistoryTable() {
           style={{ flex: 1, minWidth: 200 }}
         />
         <Button
-          variant="default"
+          variant="subtle"
           size="sm"
           disabled={!anyFilter}
           onClick={() => setFilters({ status: 'all', from: '', to: '', q: '' })}
@@ -164,8 +174,15 @@ export default function HistoryTable() {
         </Button>
       </Group>
 
-      <Group justify="space-between" px="md" py="xs" bg="gray.0" wrap="wrap">
-        <Text fz="sm" c="var(--text-secondary)">
+      {/* White with a rule above, so it doesn't merge with the inset table header below. */}
+      <Group
+        justify="space-between"
+        px="md"
+        py="xs"
+        wrap="wrap"
+        style={{ borderTop: '1px solid var(--border-subtle)' }}
+      >
+        <Text fz="sm" c="dimmed" role="status" aria-live="polite">
           Showing{' '}
           <Text component="span" fw={600} c="dark">
             {rows.length}
@@ -183,29 +200,33 @@ export default function HistoryTable() {
         </Text>
         <Menu position="bottom-end" withinPortal>
           <Menu.Target>
-            <Button variant="default" size="sm" disabled={!exportable.length}>
+            <Button
+              variant="default"
+              size="sm"
+              disabled={!exportable.length}
+              rightSection={<Chevron dir="down" size={12} />}
+            >
               {selectedRows.length
                 ? `Download ${selectedRows.length} selected`
-                : `Download all (${exportable.length})`}{' '}
-              ▾
+                : `Download all (${exportable.length})`}
             </Button>
           </Menu.Target>
           <Menu.Dropdown>
             <Menu.Item onClick={() => downloadHistoryCsv(exportRows)}>
               CSV
-              <Text fz="xs" c="var(--text-tertiary)">
+              <Text fz="sm" c="dimmed">
                 Spreadsheet-ready table
               </Text>
             </Menu.Item>
             <Menu.Item onClick={() => downloadHistoryDocx(exportRows)}>
               Word document
-              <Text fz="xs" c="var(--text-tertiary)">
+              <Text fz="sm" c="dimmed">
                 .docx with the table
               </Text>
             </Menu.Item>
             <Menu.Item onClick={() => downloadHistoryPdf(exportRows)}>
               PDF
-              <Text fz="xs" c="var(--text-tertiary)">
+              <Text fz="sm" c="dimmed">
                 Printable table
               </Text>
             </Menu.Item>
@@ -213,8 +234,8 @@ export default function HistoryTable() {
         </Menu>
       </Group>
 
-      <Table.ScrollContainer minWidth={820}>
-        <Table verticalSpacing="sm" highlightOnHover>
+      <Table.ScrollContainer minWidth={960}>
+        <Table verticalSpacing="sm" horizontalSpacing="md" fz="sm" highlightOnHover>
           <Table.Thead>
             <Table.Tr>
               <Table.Th w={40}>
@@ -225,23 +246,44 @@ export default function HistoryTable() {
                   aria-label="Select all shown requests"
                 />
               </Table.Th>
-              {COLUMNS.map((col) => (
-                <Table.Th key={col.key} ta={col.align}>
-                  <UnstyledButton onClick={() => toggleSort(col.key)} aria-label={`Sort by ${col.label}`}>
-                    <Text fz="xs" tt="uppercase" fw={600} lts="0.05em" c={sort.key === col.key ? 'dark' : 'var(--text-tertiary)'}>
-                      {col.label} {sort.key === col.key ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
-                    </Text>
-                  </UnstyledButton>
+              {COLUMNS.map((col) => {
+                const active = sort.key === col.key;
+                return (
+                  <Table.Th
+                    key={col.key}
+                    ta={col.align}
+                    aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                  >
+                    <UnstyledButton onClick={() => toggleSort(col.key)}>
+                      <Group
+                        component="span"
+                        gap={4}
+                        wrap="nowrap"
+                        justify={col.align === 'right' ? 'flex-end' : undefined}
+                        fz="sm"
+                        fw={600}
+                        c={active ? 'dark' : 'dimmed'}
+                        style={{ whiteSpace: 'nowrap' }}
+                      >
+                        {col.label}
+                        <SortIcon dir={active ? sort.dir : null} />
+                      </Group>
+                    </UnstyledButton>
+                  </Table.Th>
+                );
+              })}
+              {draft && (
+                <Table.Th>
+                  <VisuallyHidden>Actions</VisuallyHidden>
                 </Table.Th>
-              ))}
-              {draft && <Table.Th />}
+              )}
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {rows.length === 0 && (
               <Table.Tr>
-                <Table.Td colSpan={draft ? 8 : 7}>
-                  <Text ta="center" c="var(--text-secondary)" py="lg">
+                <Table.Td colSpan={COLUMNS.length + (draft ? 2 : 1)}>
+                  <Text ta="center" c="dimmed" py="lg">
                     {anyFilter ? 'No requests match these filters.' : 'No refund requests yet.'}
                   </Text>
                 </Table.Td>
@@ -259,33 +301,36 @@ export default function HistoryTable() {
                 </Table.Td>
                 <Table.Td>
                   {r.isDraft ? (
-                    <Text c="var(--text-secondary)">—</Text>
+                    <Text inherit c="dimmed">—</Text>
                   ) : (
-                    <Anchor component="button" type="button" onClick={() => setOpenId(r.id)} ff="monospace" fw={500}>
+                    <Anchor component="button" type="button" onClick={() => setOpenId(r.id)} ff="monospace" fz="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
                       {r.id}
                     </Anchor>
                   )}
                 </Table.Td>
                 <Table.Td>
-                  <Text>{CUSTOMERS[r.customer].name}</Text>
-                  <Mono c="var(--text-tertiary)" fz="xs">
+                  <Text inherit fw={500}>
+                    {CUSTOMERS[r.customer].name}
+                  </Text>
+                  <Mono fz={13} c="dimmed">
                     {r.customer}
                   </Mono>
                 </Table.Td>
+                <Table.Td>{r.requestedBy}</Table.Td>
                 <Table.Td>
-                  {r.isDraft ? <Text c="var(--text-secondary)">Not submitted</Text> : fmtDate(r.submittedAt)}
+                  {r.isDraft ? <Text inherit c="dimmed">Not submitted</Text> : fmtDate(r.submittedAt)}
                 </Table.Td>
                 <Table.Td>
                   <StatusBadge status={r.status} />
                 </Table.Td>
                 <Table.Td>{fmtDate(r.statusDate)}</Table.Td>
                 <Table.Td ta="right">
-                  {r.isDraft ? <Text c="var(--text-secondary)">—</Text> : <Mono>{fmt(r.total)}</Mono>}
+                  {r.isDraft ? <Text inherit c="dimmed">—</Text> : <Amount cents={r.total} />}
                 </Table.Td>
                 {draft && (
                   <Table.Td ta="right">
                     {r.isDraft && (
-                      <Button size="xs" variant="default" onClick={resumeDraft}>
+                      <Button size="sm" variant="default" onClick={resumeDraft}>
                         Resume
                       </Button>
                     )}
@@ -301,3 +346,11 @@ export default function HistoryTable() {
     </Paper>
   );
 }
+
+// Up/down arrows on every sortable header; the active direction is solid, the rest faint.
+const SortIcon = ({ dir }) => (
+  <svg viewBox="0 0 10 14" width={8} height={12} aria-hidden="true" style={{ flexShrink: 0 }}>
+    <path d="M5 1 9 5.5H1Z" fill="currentColor" opacity={dir === 'asc' ? 1 : 0.35} />
+    <path d="M5 13 1 8.5h8Z" fill="currentColor" opacity={dir === 'desc' ? 1 : 0.35} />
+  </svg>
+);

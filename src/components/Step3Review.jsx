@@ -5,15 +5,17 @@ import {
   List,
   Paper,
   SimpleGrid,
+  Stack,
   Table,
   Text,
   Title,
+  VisuallyHidden,
 } from '@mantine/core';
 import { useRefund } from '../state/RefundContext';
 import { SUBMITTER, JUSTIFICATION_LABEL } from '../data/mockData';
-import { fmt, fmtDate, methodLabel } from '../lib/format';
+import { fmtDate, methodLabel } from '../lib/format';
 import { refundCents, remitterSource, remitterNotes } from '../lib/selectors';
-import { Mono, RemitterSourceBadge, LumpSumBadge } from './shared';
+import { Mono, Amount, Field, Chevron, DisabledHint, RemitterSourceAnnotation, LumpSumAnnotation } from './shared';
 
 export default function Step3Review() {
   const { draft, customer, fees, total, sending, setCertified, setStep, submit } = useRefund();
@@ -30,23 +32,16 @@ export default function Step3Review() {
         <Title order={2} fz="lg" mb="sm">
           Request summary
         </Title>
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="xs" verticalSpacing={6}>
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md" verticalSpacing="sm">
           <Field label="Submitted by">
-            {SUBMITTER.name} ·{' '}
-            <Text component="span" c="var(--text-secondary)">
-              {SUBMITTER.email}
-            </Text>
+            {SUBMITTER.name} · {SUBMITTER.email}
           </Field>
           <Field label="Customer">
             {customer.name} · <Mono>{customer.id}</Mono> · {customer.team}, {customer.position}
           </Field>
           <Field label="Justification">
             {JUSTIFICATION_LABEL[draft.justification.code]}
-            {draft.justification.code === 'other' && (
-              <Text c="var(--text-secondary)" fz="sm">
-                {draft.justification.text}
-              </Text>
-            )}
+            {draft.justification.code === 'other' && <Text mt={2}>{draft.justification.text}</Text>}
           </Field>
           <Field label="Refund type">
             {partials
@@ -83,41 +78,35 @@ export default function Step3Review() {
                     <Table.Td>
                       <Group gap={6} align="baseline">
                         <Text fw={600}>{fee.desc}</Text>
-                        {fee.items && <LumpSumBadge count={fee.items.length} />}
+                        {fee.items && <LumpSumAnnotation count={fee.items.length} />}
                       </Group>
-                      <Mono c="var(--text-tertiary)" fz="xs">
-                        {fee.id}
-                      </Mono>
+                      <Mono c="dimmed">{fee.id}</Mono>
                     </Table.Td>
                     <Table.Td>
                       {fmtDate(fee.date)}
-                      <Text fz="sm" c="var(--text-secondary)">
+                      <Text fz="sm" c="dimmed">
                         {fee.method}
                         {fee.card !== '—' ? ` ${fee.card}` : ''}
                       </Text>
                     </Table.Td>
                     <Table.Td ta="right">
-                      <Mono>{fmt(fee.cents)}</Mono>
+                      <Amount cents={fee.cents} />
                     </Table.Td>
                     <Table.Td ta="right">
-                      <Mono>{fmt(refundCents(fee, draft))}</Mono>
+                      <Amount cents={refundCents(fee, draft)} />
                       {refundCents(fee, draft) < fee.cents && (
-                        <Text fz="xs" c="var(--text-tertiary)">
-                          partial
+                        <Text fz="sm" c="dimmed">
+                          Partial
                         </Text>
                       )}
                     </Table.Td>
                     <Table.Td>
                       <Text fw={600}>{r.name}</Text>
-                      <Text fz="sm" c="var(--text-secondary)">
-                        {r.address}
-                      </Text>
-                      <Text fz="sm" c="var(--text-secondary)">
-                        {methodLabel(fee, r.method)}
-                      </Text>
+                      <Text fz="sm">{r.address}</Text>
+                      <Text fz="sm">{methodLabel(fee, r.method)}</Text>
                       {source !== 'record' && (
                         <div style={{ marginTop: 4 }}>
-                          <RemitterSourceBadge source={source} />
+                          <RemitterSourceAnnotation source={source} />
                         </div>
                       )}
                     </Table.Td>
@@ -127,11 +116,9 @@ export default function Step3Review() {
             </Table.Tbody>
           </Table>
         </Table.ScrollContainer>
-        <Group justify="flex-end" gap="xl" p="md" style={{ borderTop: '1px solid var(--mantine-color-gray-4)' }}>
-          <Text c="var(--text-secondary)">Total refund requested</Text>
-          <Mono fz="xl" fw={600}>
-            {fmt(total)}
-          </Mono>
+        <Group justify="flex-end" gap="xl" p="md" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+          <Text fw={600}>Total refund requested</Text>
+          <Amount cents={total} fz="xl" fw={600} />
         </Group>
       </Paper>
 
@@ -140,20 +127,20 @@ export default function Step3Review() {
           <Title order={2} fz="lg">
             Remitter notes
           </Title>
-          <Text fz="sm" c="var(--text-secondary)">
+          <Text fz="sm" c="dimmed">
             Included in the request document sent to the OCFO.
           </Text>
         </Group>
         {notes.length ? (
-          <List spacing="xs" fz="sm">
+          <List spacing="xs">
             {notes.map((n) => (
               <List.Item key={n.feeId}>
-                <Mono fw={500}>{n.feeId}</Mono> — {n.text}
+                <Mono fw={500}>{n.feeId}</Mono>: {n.text}
               </List.Item>
             ))}
           </List>
         ) : (
-          <Text c="var(--text-secondary)">Every remitter matches the payment record.</Text>
+          <Text>Every remitter matches the payment record.</Text>
         )}
       </Paper>
 
@@ -167,7 +154,7 @@ export default function Step3Review() {
               my knowledge. By submitting, I am legally submitting this fee refund request to the
               Office of the Chief Financial Officer for review, and I understand that it will be
               transmitted digitally and recorded under my credentials.{' '}
-              <Text component="span" fz="sm" c="var(--text-secondary)">
+              <Text component="span" fz="sm" c="dimmed">
                 (Placeholder wording, to be supplied by counsel.)
               </Text>
             </Text>
@@ -175,26 +162,28 @@ export default function Step3Review() {
         />
       </Paper>
 
-      <Group justify="space-between" wrap="wrap">
-        <Text c="var(--text-secondary)">Submitting sends the request to the OCFO. It can't be edited afterward.</Text>
-        <Group gap="xs">
-          <Button variant="default" disabled={sending} onClick={() => setStep(2)}>
-            ← Back to details
-          </Button>
-          <Button disabled={!draft.certified} loading={sending} onClick={submit}>
-            Submit to OCFO
-          </Button>
-        </Group>
+      <Group justify="space-between" align="flex-start" wrap="wrap">
+        <Text>Submitting sends the request to the OCFO. It can't be edited afterward.</Text>
+        <Stack gap={4} align="flex-end">
+          <Group gap="xs">
+            <Button
+              variant="default"
+              disabled={sending}
+              onClick={() => setStep(2)}
+              leftSection={<Chevron dir="left" />}
+            >
+              Back to details
+            </Button>
+            <Button disabled={!draft.certified} loading={sending} onClick={submit}>
+              Submit to OCFO
+            </Button>
+          </Group>
+          <DisabledHint items={draft.certified ? [] : ['check the certification box above']} />
+          <VisuallyHidden role="status" aria-live="polite">
+            {sending ? 'Submitting your request to the OCFO…' : ''}
+          </VisuallyHidden>
+        </Stack>
       </Group>
     </>
   );
 }
-
-const Field = ({ label, children }) => (
-  <div>
-    <Text fz="xs" tt="uppercase" c="var(--text-tertiary)" fw={600} lts="0.05em">
-      {label}
-    </Text>
-    <Text>{children}</Text>
-  </div>
-);

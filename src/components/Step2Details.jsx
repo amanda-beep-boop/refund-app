@@ -1,9 +1,8 @@
 import { Button, Group, Paper, Select, Stack, Text, Textarea, Title } from '@mantine/core';
 import { useRefund } from '../state/RefundContext';
 import { JUSTIFICATIONS } from '../data/mockData';
-import { fmt } from '../lib/format';
-import { justificationValid, step2Valid } from '../lib/selectors';
-import { Mono } from './shared';
+import { amountValid, justificationValid, remitterValid, step2Valid } from '../lib/selectors';
+import { Amount, Chevron, DisabledHint, IncompleteLabel } from './shared';
 import FeeCard from './FeeCard';
 
 export default function Step2Details() {
@@ -11,9 +10,15 @@ export default function Step2Details() {
   const canContinue = step2Valid(draft);
   const justOk = justificationValid(draft);
 
+  const missing = [
+    ...fees.filter((f) => !amountValid(f, draft)).map((f) => `fix the refund amount for ${f.desc}`),
+    ...fees.filter((f) => !remitterValid(f, draft)).map((f) => `add the remitter for ${f.desc}`),
+    ...(justOk ? [] : [draft.justification.code === 'other' ? 'describe the reason' : 'choose a justification']),
+  ];
+
   return (
     <>
-      <Text c="var(--text-secondary)" mt={-8} maw={640}>
+      <Text c="dimmed" mt={-8} maw={640}>
         Confirm the refund amount and the remitter for each fee. Remitter details come from the
         original payment record; change them only if the record is wrong.
       </Text>
@@ -25,20 +30,23 @@ export default function Step2Details() {
       <Paper
         withBorder
         radius="sm"
-        style={justOk ? undefined : { borderColor: 'var(--mantine-color-yellow-6)' }}
+        style={justOk ? undefined : { borderColor: 'var(--border-warning)' }}
       >
         <Group justify="space-between" p="md" wrap="wrap">
-          <Title order={2} fz="lg">
-            Reason for this request
-          </Title>
-          <Text fz="sm" c="var(--text-secondary)">
+          <Group gap="sm" align="baseline">
+            <Title order={2} fz="lg">
+              Reason for this request
+            </Title>
+            {!justOk && <IncompleteLabel />}
+          </Group>
+          <Text fz="sm" c="dimmed">
             One justification covers every fee in the request.
           </Text>
         </Group>
         <Stack p="md" pt={0} gap="sm">
           <Select
             label="Justification"
-            placeholder="Select a reason…"
+            placeholder="Select a reason"
             required
             data={JUSTIFICATIONS}
             value={draft.justification.code}
@@ -48,7 +56,7 @@ export default function Step2Details() {
           {draft.justification.code === 'other' && (
             <Textarea
               label="Describe the reason"
-              placeholder="Why should these fees be refunded?"
+              description="Why should these fees be refunded?"
               required
               autosize
               minRows={3}
@@ -59,24 +67,24 @@ export default function Step2Details() {
         </Stack>
       </Paper>
 
-      <Group justify="space-between" wrap="wrap">
-        <Text c="var(--text-secondary)">
-          <Text component="span" fw={600} c="dark">
+      <Group justify="space-between" align="flex-start" wrap="wrap">
+        <Text>
+          <Text component="span" fw={600}>
             {fees.length}
           </Text>{' '}
-          fee{fees.length === 1 ? '' : 's'} · total refund{' '}
-          <Mono fw={600} c="dark">
-            {fmt(total)}
-          </Mono>
+          fee{fees.length === 1 ? '' : 's'} · total refund <Amount cents={total} fw={600} />
         </Text>
-        <Group gap="xs">
-          <Button variant="default" onClick={() => setStep(1)}>
-            ← Back to fees
-          </Button>
-          <Button disabled={!canContinue} onClick={() => setStep(3)}>
-            Continue to review →
-          </Button>
-        </Group>
+        <Stack gap={4} align="flex-end" maw={520}>
+          <Group gap="xs">
+            <Button variant="default" onClick={() => setStep(1)} leftSection={<Chevron dir="left" />}>
+              Back to fees
+            </Button>
+            <Button disabled={!canContinue} onClick={() => setStep(3)} rightSection={<Chevron />}>
+              Continue to review
+            </Button>
+          </Group>
+          <DisabledHint items={missing} />
+        </Stack>
       </Group>
     </>
   );

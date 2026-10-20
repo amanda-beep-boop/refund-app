@@ -1,15 +1,144 @@
+/* Page canvas sits behind the white cards; Paper and inputs keep --mantine-color-body. */
+body {
+  background-color: var(--surface-canvas);
+}
+
+/* Table header rows are recessed within their card. */
+.mantine-Table-thead {
+  background-color: var(--surface-inset);
+}
+
 /* Primary links darken on hover. */
 .mantine-Anchor-root:hover {
-  color: var(--mantine-color-ocfo-7);
+  color: var(--mantine-color-brand-7);
 }
 
 /* Completed steps read as a light chip rather than a solid fill. */
 .mantine-Stepper-stepIcon[data-completed] {
-  background-color: var(--mantine-color-ocfo-0);
-  border-color: var(--mantine-color-ocfo-0);
-  color: var(--mantine-color-ocfo-6);
+  background-color: var(--mantine-color-brand-0);
+  border-color: var(--mantine-color-brand-0);
+  color: var(--mantine-color-brand-6);
 }
 
 .mantine-Stepper-stepCompletedIcon {
-  color: var(--mantine-color-ocfo-6);
+  color: var(--mantine-color-brand-6);
+}
+
+/* Disabled subtle buttons stay borderless instead of turning into a gray block. */
+.mantine-Button-root[data-variant='subtle']:disabled {
+  background-color: transparent;
+}
+
+/* Amounts line up in columns without switching to a monospace face. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Semantic grouping only; the legend is styled as a field label. */
+.plain-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.plain-fieldset > legend {
+  padding: 0;
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+/* A submitted request shown as one record: header strip, sections divided by rules, and the
+   certification as a closing footer. */
+.form-record {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
+}
+
+.form-record-header {
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  background-color: var(--surface-inset);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* The parties side by side, like the address blocks on an invoice. */
+.form-record-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--mantine-spacing-md) var(--mantine-spacing-xl);
+  padding: var(--mantine-spacing-md);
+}
+
+.form-record-section {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.form-record-pad {
+  padding: var(--mantine-spacing-md);
+}
+
+/* Inside a record the column headers read like field labels: gray on white, no fill, since the
+   record header above already carries the gray strip. */
+.form-record .mantine-Table-thead {
+  background-color: transparent;
+}
+
+.form-record .mantine-Table-th {
+  color: var(--mantine-color-dimmed);
+  font-weight: 600;
+}
+
+/* The total row is the record's bottom line, so it reads dark like a value. */
+.form-record .mantine-Table-tfoot .mantine-Table-th {
+  color: inherit;
+}
+
+/* The next section's rule closes the table, so its last row doesn't draw a second one. */
+.form-record .mantine-Table-tfoot .mantine-Table-tr {
+  border-bottom: 0;
+}
+
+.form-record-footer {
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  background-color: var(--surface-inset);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Notes are link targets: land below the modal's sticky header, and show where focus went. */
+.status-note {
+  scroll-margin-top: 5rem;
+}
+
+.status-note:focus-visible,
+.status-note:focus {
+  outline: 2px solid var(--mantine-color-brand-6);
+  outline-offset: 2px;
+}
+
+/* Long free text (notes, justifications) wraps at a comfortable line length. */
+.readable {
+  max-width: 72ch;
+  line-height: 1.55;
+}
+
+/* Skip link: off screen until focused. */
+.skip-link {
+  position: absolute;
+  left: var(--mantine-spacing-md);
+  top: -100px;
+  z-index: 1000;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  background: var(--mantine-color-body);
+  border: 2px solid var(--mantine-color-brand-6);
+  border-radius: var(--mantine-radius-sm);
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: var(--mantine-spacing-xs);
+}
+
+/* Headings focused programmatically after a view change don't need a focus ring. */
+h1[tabindex='-1']:focus {
+  outline: none;
 }

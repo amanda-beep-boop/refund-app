@@ -4,20 +4,57 @@
 // refund-request service. Amounts are integer cents.
 // ---------------------------------------------------------------------------
 
-export const SUBMITTER = { name: 'You', email: 'you@agency.example' };
+// The signed-in user. The history table lists every request from their office, so some
+// seed requests are submitted by colleagues.
+export const SUBMITTER = { name: 'Jordan Ellis', email: 'jordan.ellis@agency.example' };
+const COLLEAGUES = {
+  okafor: { name: 'Danielle Okafor', email: 'danielle.okafor@agency.example' },
+  lindqvist: { name: 'Marcus Lindqvist', email: 'marcus.lindqvist@agency.example' },
+};
 export const OCFO = { name: 'OCFO Refund Review', email: 'refunds@ocfo.example' };
 
+// Definitions are placeholder wording pending business/counsel review. A request stores the
+// definition in force when it was certified, so later edits here don't rewrite old records.
 export const JUSTIFICATIONS = [
-  { value: 'duplicate', label: 'Duplicate payment' },
-  { value: 'billing', label: 'Billing error' },
-  { value: 'notrendered', label: 'Service not rendered' },
-  { value: 'overpay', label: 'Overpayment' },
-  { value: 'waived', label: 'Fee waived' },
-  { value: 'other', label: 'Other reason' },
+  {
+    value: 'duplicate',
+    label: 'Duplicate payment',
+    definition: 'The customer paid the same fee more than once for the same service or period.',
+  },
+  {
+    value: 'billing',
+    label: 'Billing error',
+    definition: 'The fee was charged in error, at the wrong amount, or to the wrong account.',
+  },
+  {
+    value: 'notrendered',
+    label: 'Service not rendered',
+    definition: 'The fee was paid for a service the agency did not provide.',
+  },
+  {
+    value: 'overpay',
+    label: 'Overpayment',
+    definition: 'The customer paid more than the amount owed for the fee.',
+  },
+  {
+    value: 'waived',
+    label: 'Fee waived',
+    definition: 'The fee was waived under an approved waiver or exemption after it was paid.',
+  },
+  {
+    value: 'other',
+    label: 'Other reason',
+    definition:
+      'A reason not covered by the standard justifications. The submitter explains it in their own words.',
+  },
 ];
 
 export const JUSTIFICATION_LABEL = Object.fromEntries(
   JUSTIFICATIONS.map((j) => [j.value, j.label])
+);
+
+export const JUSTIFICATION_DEFINITION = Object.fromEntries(
+  JUSTIFICATIONS.map((j) => [j.value, j.definition])
 );
 
 // Each fee carries its own remitter from the payment record (or null when the
@@ -184,8 +221,8 @@ const R = (name, address, method, email) => ({
   email: email || null,
 });
 
-export const buildNotifications = (at, remitters) => [
-  { role: 'Submitter', name: SUBMITTER.name, to: SUBMITTER.email, at },
+export const buildNotifications = (at, remitters, submitter = SUBMITTER) => [
+  { role: 'Submitter', name: submitter.name, to: submitter.email, at },
   { role: 'OCFO', name: OCFO.name, to: OCFO.email, at },
   ...remitters.map((r) => ({ role: 'Remitter', name: r.name, to: r.email, at })),
 ];
@@ -237,7 +274,7 @@ export const SEED_REQUESTS = [
     submittedAt: '2026-07-01T15:40:00',
     status: 'approved',
     statusDate: '2026-07-22',
-    submittedBy: SUBMITTER,
+    submittedBy: COLLEAGUES.okafor,
     certifiedAt: '2026-07-01T15:40:00',
     justification: { code: 'billing', text: '' },
     fees: [
@@ -267,9 +304,11 @@ export const SEED_REQUESTS = [
       { status: 'review', at: '2026-07-03T11:12:00' },
       { status: 'approved', at: '2026-07-22T16:45:00' },
     ],
-    notifications: buildNotifications('2026-07-01T15:40:00', [
-      R('Metro Transit Authority – Accounts Payable', '', '', 'ap@mta.example'),
-    ]),
+    notifications: buildNotifications(
+      '2026-07-01T15:40:00',
+      [R('Metro Transit Authority – Accounts Payable', '', '', 'ap@mta.example')],
+      COLLEAGUES.okafor
+    ),
   },
   {
     id: 'RR-2026-0169',
@@ -316,7 +355,7 @@ export const SEED_REQUESTS = [
     submittedAt: '2026-08-11T14:22:00',
     status: 'review',
     statusDate: '2026-08-14',
-    submittedBy: SUBMITTER,
+    submittedBy: COLLEAGUES.lindqvist,
     certifiedAt: '2026-08-11T14:22:00',
     justification: { code: 'notrendered', text: '' },
     fees: [
@@ -350,9 +389,11 @@ export const SEED_REQUESTS = [
       { status: 'submitted', at: '2026-08-11T14:22:00' },
       { status: 'review', at: '2026-08-14T09:05:00' },
     ],
-    notifications: buildNotifications('2026-08-11T14:22:00', [
-      R('Marisol Ortega', '', 'check', null),
-    ]),
+    notifications: buildNotifications(
+      '2026-08-11T14:22:00',
+      [R('Marisol Ortega', '', 'check', null)],
+      COLLEAGUES.lindqvist
+    ),
   },
   {
     id: 'RR-2026-0203',
@@ -360,7 +401,7 @@ export const SEED_REQUESTS = [
     submittedAt: '2026-09-02T11:30:00',
     status: 'returned',
     statusDate: '2026-09-10',
-    submittedBy: SUBMITTER,
+    submittedBy: COLLEAGUES.okafor,
     certifiedAt: '2026-09-02T11:30:00',
     justification: {
       code: 'other',
@@ -389,10 +430,15 @@ export const SEED_REQUESTS = [
       {
         status: 'returned',
         at: '2026-09-10T16:18:00',
-        note: 'Remitter address does not match the W-9 on file. Confirm the remitter and resubmit.',
+        note:
+          'The remitter address on this request (3500 Fairfax Dr, Arlington, VA 22203) does not match the W-9 we have on file for Priya Raman, which lists a Falls Church address dated March 2026. We can’t issue a refund to an address that differs from the W-9 without documentation.\n\nPlease either update the remitter to the address on the W-9, or attach proof of the new address (a utility bill or updated W-9 dated within the last 90 days) and resubmit. Once it’s resubmitted, the request keeps its place in the review queue.',
       },
     ],
-    notifications: buildNotifications('2026-09-02T11:30:00', [R('Priya Raman', '', '', null)]),
+    notifications: buildNotifications(
+      '2026-09-02T11:30:00',
+      [R('Priya Raman', '', '', null)],
+      COLLEAGUES.okafor
+    ),
   },
   {
     id: 'RR-2026-0205',

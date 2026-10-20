@@ -1,41 +1,216 @@
-import { Badge, Text } from '@mantine/core';
+import { useState } from 'react';
+import { Anchor, Badge, Button, Group, Modal, Stack, Text } from '@mantine/core';
 import { STATUS_META } from '../theme';
+import { useRefund } from '../state/RefundContext';
+import { fmt } from '../lib/format';
+import { deliveryLabel } from '../lib/selectors';
 
+// Two ways to mark something, and only two:
+// - StatusBadge: a filled pill, reserved for a request's workflow status. Nothing else is filled,
+//   so a filled shape is never mistaken for a control.
+// - Annotation: an icon plus text, no fill or border, for flags about a piece of data. Neutral
+//   (gray) states a fact; attention (amber) marks something the analyst should check, such as
+//   anything that departs from the system of record or is incomplete.
 export const StatusBadge = ({ status }) => (
-  <Badge variant="light" color={STATUS_META[status].color} radius="xl" size="lg" fw={600}>
+  // Never truncated: a cut-off status hides what the pill is for. Its column widens instead.
+  <Badge
+    variant="light"
+    color={STATUS_META[status].color}
+    radius="xl"
+    size="lg"
+    fw={600}
+    tt="none"
+    styles={{ root: { maxWidth: 'none', flexShrink: 0 }, label: { overflow: 'visible' } }}
+  >
     {STATUS_META[status].label}
   </Badge>
 );
 
+// Identifiers only (customer, fee, request IDs). Amounts use <Amount>.
 export const Mono = ({ children, ...props }) => (
   <Text component="span" ff="monospace" fz="sm" {...props}>
     {children}
   </Text>
 );
 
-// Badge describing where a fee's remitter came from.
-export const RemitterSourceBadge = ({ source }) => {
-  if (source === 'record')
-    return (
-      <Badge variant="light" color="gray" radius="sm">
-        From payment record
-      </Badge>
-    );
-  if (source === 'manual')
-    return (
-      <Badge variant="light" color="blue" radius="sm">
-        Entered manually
-      </Badge>
-    );
+// Dollar amount in the body font with tabular figures, so columns of amounts line up.
+export const Amount = ({ cents, ...props }) => (
+  <Text component="span" inherit className="tabular" {...props}>
+    {fmt(cents)}
+  </Text>
+);
+
+// The first crumb returns to the request list (a draft in progress stays saved).
+export const Breadcrumb = ({ current, onBack }) => (
+  <nav aria-label="Breadcrumb">
+    <Text fz="sm" c="dimmed">
+      <Anchor component="button" type="button" fz="sm" onClick={onBack}>
+        Fee Refund Requests
+      </Anchor>
+      <span aria-hidden="true"> / </span>
+      <Text component="span" fz="sm" fw={500} c="dark" aria-current="page">
+        {current}
+      </Text>
+    </Text>
+  </nav>
+);
+
+// Small sentence-case label above a value.
+export const FieldLabel = ({ children, ...props }) => (
+  <Text fz="sm" fw={600} c="dimmed" {...props}>
+    {children}
+  </Text>
+);
+
+export const Field = ({ label, children }) => (
+  <div>
+    <FieldLabel>{label}</FieldLabel>
+    <Text component="div">{children}</Text>
+  </div>
+);
+
+// Groups related controls under a legend without the visual weight of Mantine's Fieldset.
+export const FieldGroup = ({ legend, children, ...props }) => (
+  <fieldset className="plain-fieldset" {...props}>
+    <legend>
+      <FieldLabel component="span">{legend}</FieldLabel>
+    </legend>
+    {children}
+  </fieldset>
+);
+
+export const Annotation = ({ tone = 'neutral', children }) => {
+  const attention = tone === 'attention';
   return (
-    <Badge variant="light" color="yellow" radius="sm">
-      Changed from payment record
-    </Badge>
+    <Text
+      component="span"
+      fz="sm"
+      fw={attention ? 600 : 400}
+      c={attention ? 'var(--mantine-color-yellow-light-color)' : 'dimmed'}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}
+    >
+      {attention ? <WarningIcon /> : <InfoIcon />}
+      {children}
+    </Text>
   );
 };
 
-export const LumpSumBadge = ({ count }) => (
-  <Badge variant="light" color="yellow" radius="sm">
-    Lump sum{count ? ` · ${count} items` : ''}
-  </Badge>
+// Text cue for incomplete sections, so the warning border isn't the only signal.
+export const IncompleteLabel = ({ children = 'Incomplete' }) => (
+  <Annotation tone="attention">{children}</Annotation>
+);
+
+const WarningIcon = () => (
+  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" style={{ flexShrink: 0 }}>
+    <path d="M8 1.5 15 14H1L8 1.5Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    <path d="M8 6v3.5M8 11.6v.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+  </svg>
+);
+
+const InfoIcon = () => (
+  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" style={{ flexShrink: 0 }}>
+    <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+    <path d="M8 7.2v4M8 4.6v.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+  </svg>
+);
+
+// Decorative chevron for buttons and disclosures; hidden from assistive technology.
+export const Chevron = ({ dir = 'right', size = 14 }) => {
+  const rotate = { right: 0, down: 90, left: 180 }[dir];
+  return (
+    <svg
+      viewBox="0 0 12 12"
+      width={size}
+      height={size}
+      aria-hidden="true"
+      style={{ transform: `rotate(${rotate}deg)`, transition: 'transform 120ms' }}
+    >
+      <path
+        d="M4 2l4 4-4 4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+// Explains why the adjacent primary button is disabled. Polite live region so the hint is
+// announced as it changes.
+export const DisabledHint = ({ items }) => (
+  <div role="status" aria-live="polite">
+    {items.length > 0 && (
+      <Text fz="sm" c="var(--mantine-color-yellow-light-color)">
+        <Text component="span" fw={600} inherit>
+          To continue:
+        </Text>{' '}
+        {items.join('; ')}.
+      </Text>
+    )}
+  </div>
+);
+
+// Discarding a draft can't be undone, so it always asks first.
+export const DiscardDraftButton = ({ size = 'sm' }) => {
+  const { discardDraft } = useRefund();
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button size={size} variant="subtle" color="red" onClick={() => setOpen(true)}>
+        Discard draft
+      </Button>
+      <Modal opened={open} onClose={() => setOpen(false)} title="Discard this draft?" centered>
+        <Text>The fees, amounts and details you've entered will be deleted. This can't be undone.</Text>
+        <Group justify="flex-end" mt="lg" gap="xs">
+          <Button variant="default" onClick={() => setOpen(false)} data-autofocus>
+            Keep draft
+          </Button>
+          <Button
+            color="red"
+            onClick={() => {
+              setOpen(false);
+              discardDraft();
+            }}
+          >
+            Discard draft
+          </Button>
+        </Group>
+      </Modal>
+    </>
+  );
+};
+
+// Who E-Note notified and how: the recipient's name, then the delivery it made.
+export const NotificationList = ({ notifications }) => (
+  <Stack gap="xs" component="ul" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+    {notifications.map((n, i) => (
+      <Group key={i} gap="md" wrap="nowrap" align="baseline" component="li">
+        <Text fz="sm" fw={600} c="dimmed" w={90} style={{ flexShrink: 0 }}>
+          {n.role}
+        </Text>
+        <div>
+          <Text fz="sm">{n.name}</Text>
+          <Text fz="sm" c="dimmed">
+            {deliveryLabel(n)}
+          </Text>
+        </div>
+      </Group>
+    ))}
+  </Stack>
+);
+
+// Where a fee's remitter came from. Anything other than the payment record needs checking.
+export const RemitterSourceAnnotation = ({ source }) =>
+  source === 'record' ? (
+    <Annotation>From payment record</Annotation>
+  ) : (
+    <Annotation tone="attention">
+      {source === 'manual' ? 'Entered manually' : 'Changed from payment record'}
+    </Annotation>
+  );
+
+export const LumpSumAnnotation = ({ count }) => (
+  <Annotation>Lump sum{count ? ` of ${count} items` : ''}</Annotation>
 );

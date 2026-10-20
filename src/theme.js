@@ -1,14 +1,29 @@
 import { alpha, createTheme, DEFAULT_THEME } from '@mantine/core';
 
 // Text and status colors, each checked for at least 4.5:1 contrast (WCAG 2.1 AA) against
-// white, gray.0, and ocfo.0 backgrounds.
+// white, the canvas and inset surfaces, and brand.0.
+// One secondary gray for labels, details, hints, table headers and placeholders. It is Mantine's
+// "dimmed" color: use c="dimmed". (A second, near-identical gray was merged into it.)
 const TEXT = {
   secondary: '#4F5966',
-  tertiary: '#5F6975', // labels, hints, table headers, uppercase labels, placeholders
 };
+// Surface levels: page canvas < white cards (Mantine's body color) > recessed inset areas
+// (toolbars, table headers, nested rows). Every text color above stays at 4.5:1 on both.
+const SURFACE = {
+  canvas: '#F3F5F7',
+  inset: '#EEF1F4',
+};
+// Subtle borders divide sections within a card; strong borders mark structure (nested-row
+// rules). Warning is at least 3:1 (WCAG 1.4.11) on white and the canvas, unlike yellow.6.
+const BORDER = {
+  subtle: DEFAULT_THEME.colors.gray[3],
+  strong: DEFAULT_THEME.colors.gray[4],
+  warning: '#C77700',
+};
+// Mantine's shade-9 green and yellow text are under 4.5:1 on their light backgrounds.
 const STATUS_TEXT = {
-  approved: '#196F45',
-  review: '#9A5500', // Mantine's yellow text is under 3:1 on its light background
+  green: '#196F45',
+  yellow: '#9A5500',
 };
 
 // POC palette. Swap for the product design system's tokens at implementation time.
@@ -19,10 +34,10 @@ export const theme = createTheme({
     fontFamily: "'Source Sans 3', 'Source Sans Pro', system-ui, sans-serif",
     fontWeight: '600',
   },
-  primaryColor: 'ocfo',
+  primaryColor: 'brand',
   primaryShade: 6,
   colors: {
-    ocfo: [
+    brand: [
       '#E8F3FB',
       '#C1DDF0',
       '#9BC8E6',
@@ -35,21 +50,24 @@ export const theme = createTheme({
       '#003559',
     ],
   },
-  other: { text: TEXT, statusText: STATUS_TEXT },
   defaultRadius: 'sm',
 });
 
-// primaryShade applies to every color. Keep the non-primary colors on shade 9 (the
-// previous primaryShade) so red/blue/yellow text keeps its contrast, and use the
-// palette's lightest tint for primary light backgrounds and quiet-button hovers.
+// primaryShade applies to every color. Every non-primary color (red, blue, yellow, …) is
+// pinned to shade 9 for its filled, light and outline variants so its text keeps AA
+// contrast. color="blue" therefore renders darker than Mantine's docs show.
+// The primary color uses its lightest tints for light backgrounds and their hover.
 export const cssVariablesResolver = (t) => {
   const light = {
-    '--mantine-color-ocfo-light': t.colors.ocfo[0],
-    '--mantine-color-ocfo-light-hover': t.colors.ocfo[0],
+    '--mantine-color-brand-light': t.colors.brand[0],
+    '--mantine-color-brand-light-hover': t.colors.brand[1],
     '--mantine-color-dimmed': TEXT.secondary,
-    '--mantine-color-placeholder': TEXT.tertiary,
-    '--text-secondary': TEXT.secondary,
-    '--text-tertiary': TEXT.tertiary,
+    '--mantine-color-placeholder': TEXT.secondary,
+    '--surface-canvas': SURFACE.canvas,
+    '--surface-inset': SURFACE.inset,
+    '--border-subtle': BORDER.subtle,
+    '--border-strong': BORDER.strong,
+    '--border-warning': BORDER.warning,
   };
   Object.keys(DEFAULT_THEME.colors).forEach((name) => {
     const nine = t.colors[name][9];
@@ -63,7 +81,10 @@ export const cssVariablesResolver = (t) => {
       [`--mantine-color-${name}-outline-hover`]: alpha(nine, 0.05),
     });
   });
-  light['--mantine-color-yellow-light-color'] = STATUS_TEXT.review;
+  Object.entries(STATUS_TEXT).forEach(([name, color]) => {
+    light[`--mantine-color-${name}-light-color`] = color;
+  });
+  // Light only: the app has no dark mode (main.jsx forces the light scheme).
   return { variables: {}, light, dark: {} };
 };
 
@@ -72,6 +93,6 @@ export const STATUS_META = {
   draft: { label: 'Draft', color: 'gray' },
   submitted: { label: 'Submitted to OCFO', color: 'blue' },
   review: { label: 'Under OCFO review', color: 'yellow' },
-  approved: { label: 'Approved', color: STATUS_TEXT.approved },
+  approved: { label: 'Approved', color: 'green' },
   returned: { label: 'Returned for correction', color: 'red' },
 };
