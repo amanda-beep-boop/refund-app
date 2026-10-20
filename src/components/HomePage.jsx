@@ -13,7 +13,7 @@ export default function HomePage() {
     <Stack gap="lg">
       <div>
         <Title order={1}>Fee Refund Requests</Title>
-        <Text c="dimmed" mt={6} maw={640}>
+        <Text c="var(--text-secondary)" mt={6} maw={640}>
           Look up a customer account, select the fees eligible for refund, and submit a refund
           request to the Office of the Chief Financial Officer (OCFO) for review. Every request you
           have submitted, with its current status, is listed below.

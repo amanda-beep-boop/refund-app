@@ -45,11 +45,11 @@ export default function FeeCard({ fee }) {
         <Group gap={8} align="baseline">
           <Text fw={600}>{fee.desc}</Text>
           {fee.items && <LumpSumBadge />}
-          <Mono c="dimmed" fz="xs">
+          <Mono c="var(--text-tertiary)" fz="xs">
             {fee.id}
           </Mono>
         </Group>
-        <Text fz="sm" c="dimmed">
+        <Text fz="sm" c="var(--text-secondary)">
           Paid {fmtDate(fee.date)} · {fee.method}
           {fee.card !== '—' ? ` ${fee.card}` : ''} ·{' '}
           <Mono fw={600} c="dark">
@@ -61,7 +61,7 @@ export default function FeeCard({ fee }) {
       <Group p="md" gap="xl" align="flex-start" wrap="wrap">
         {/* Refund amount */}
         <Stack gap="xs" style={{ flex: '1 1 240px', minWidth: 240 }}>
-          <Text fz="xs" tt="uppercase" c="dimmed" fw={600} lts="0.05em">
+          <Text fz="xs" tt="uppercase" c="var(--text-tertiary)" fw={600} lts="0.05em">
             Refund amount
           </Text>
           <Group gap="sm">
@@ -94,7 +94,7 @@ export default function FeeCard({ fee }) {
             </Text>
           )}
           {partial && amountOk && (
-            <Text fz="sm" c="dimmed">
+            <Text fz="sm" c="var(--text-secondary)">
               Refunding {fmt(refundCents(fee, draft))} of {fmt(fee.cents)}
             </Text>
           )}
@@ -102,7 +102,7 @@ export default function FeeCard({ fee }) {
 
         {/* Remit to */}
         <Stack gap="xs" style={{ flex: '1.5 1 300px', minWidth: 280 }}>
-          <Text fz="xs" tt="uppercase" c="dimmed" fw={600} lts="0.05em">
+          <Text fz="xs" tt="uppercase" c="var(--text-tertiary)" fw={600} lts="0.05em">
             Remit to
           </Text>
 
@@ -181,7 +181,7 @@ export default function FeeCard({ fee }) {
               <div>
                 <Text fw={600}>{remitter.name}</Text>
                 <Text>{remitter.address}</Text>
-                <Text fz="sm" c="dimmed">
+                <Text fz="sm" c="var(--text-secondary)">
                   {methodLabel(fee, remitter.method)}
                 </Text>
               </div>

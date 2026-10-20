@@ -79,7 +79,7 @@ export function downloadHistoryPdf(rows) {
     body: rowArrays(rows),
     startY: 78,
     styles: { fontSize: 9, cellPadding: 5 },
-    headStyles: { fillColor: [15, 92, 110], textColor: 255 },
+    headStyles: { fillColor: [0, 113, 187], textColor: 255 },
     columnStyles: { 6: { halign: 'right' } },
   });
   saveBlob(
@@ -183,7 +183,7 @@ export function downloadRequestPdf(request) {
     ]),
     startY: y + 8,
     styles: { fontSize: 9, cellPadding: 5 },
-    headStyles: { fillColor: [15, 92, 110], textColor: 255 },
+    headStyles: { fillColor: [0, 113, 187], textColor: 255 },
     columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { cellWidth: 190 } },
   });
 
@@ -241,7 +241,7 @@ export function downloadRequestPdf(request) {
   doc.setTextColor(90);
   doc.text(
     doc.splitTextToSize(
-      `Attested and submitted by ${request.submittedBy.name} on ${fmtDateTime(request.attestedAt)}. Generated ${fmtDateTime(nowISO())}.`,
+      `Certified and submitted by ${request.submittedBy.name} on ${fmtDateTime(request.certifiedAt)}. Generated ${fmtDateTime(nowISO())}.`,
       width - 80
     ),
     40,

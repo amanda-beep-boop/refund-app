@@ -6,7 +6,7 @@ import { parseCents, dollars, methodLabel } from './format';
 //   customer: 'C-...', selected: Set<feeId>, collapsed: Set<feeId>,
 //   amounts: { [feeId]: { mode: 'full'|'partial', input: '12.34' } },
 //   remitters: { [feeId]: { editing, touched, name, address, method, email } },
-//   justification: { code, text }, attested: bool, startedAt: iso,
+//   justification: { code, text }, certified: bool, startedAt: iso,
 // }
 
 export const draftCustomer = (draft) => (draft ? CUSTOMERS[draft.customer] : null);

@@ -16,7 +16,7 @@ import { refundCents, remitterSource, remitterNotes } from '../lib/selectors';
 import { Mono, RemitterSourceBadge, LumpSumBadge } from './shared';
 
 export default function Step3Review() {
-  const { draft, customer, fees, total, sending, setAttested, setStep, submit } = useRefund();
+  const { draft, customer, fees, total, sending, setCertified, setStep, submit } = useRefund();
   const partials = fees.filter((f) => refundCents(f, draft) < f.cents).length;
   const notes = remitterNotes(
     fees,
@@ -33,7 +33,7 @@ export default function Step3Review() {
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="xs" verticalSpacing={6}>
           <Field label="Submitted by">
             {SUBMITTER.name} ·{' '}
-            <Text component="span" c="dimmed">
+            <Text component="span" c="var(--text-secondary)">
               {SUBMITTER.email}
             </Text>
           </Field>
@@ -43,7 +43,7 @@ export default function Step3Review() {
           <Field label="Justification">
             {JUSTIFICATION_LABEL[draft.justification.code]}
             {draft.justification.code === 'other' && (
-              <Text c="dimmed" fz="sm">
+              <Text c="var(--text-secondary)" fz="sm">
                 {draft.justification.text}
               </Text>
             )}
@@ -85,13 +85,13 @@ export default function Step3Review() {
                         <Text fw={600}>{fee.desc}</Text>
                         {fee.items && <LumpSumBadge count={fee.items.length} />}
                       </Group>
-                      <Mono c="dimmed" fz="xs">
+                      <Mono c="var(--text-tertiary)" fz="xs">
                         {fee.id}
                       </Mono>
                     </Table.Td>
                     <Table.Td>
                       {fmtDate(fee.date)}
-                      <Text fz="sm" c="dimmed">
+                      <Text fz="sm" c="var(--text-secondary)">
                         {fee.method}
                         {fee.card !== '—' ? ` ${fee.card}` : ''}
                       </Text>
@@ -102,17 +102,17 @@ export default function Step3Review() {
                     <Table.Td ta="right">
                       <Mono>{fmt(refundCents(fee, draft))}</Mono>
                       {refundCents(fee, draft) < fee.cents && (
-                        <Text fz="xs" c="dimmed">
+                        <Text fz="xs" c="var(--text-tertiary)">
                           partial
                         </Text>
                       )}
                     </Table.Td>
                     <Table.Td>
                       <Text fw={600}>{r.name}</Text>
-                      <Text fz="sm" c="dimmed">
+                      <Text fz="sm" c="var(--text-secondary)">
                         {r.address}
                       </Text>
-                      <Text fz="sm" c="dimmed">
+                      <Text fz="sm" c="var(--text-secondary)">
                         {methodLabel(fee, r.method)}
                       </Text>
                       {source !== 'record' && (
@@ -128,7 +128,7 @@ export default function Step3Review() {
           </Table>
         </Table.ScrollContainer>
         <Group justify="flex-end" gap="xl" p="md" style={{ borderTop: '1px solid var(--mantine-color-gray-4)' }}>
-          <Text c="dimmed">Total refund requested</Text>
+          <Text c="var(--text-secondary)">Total refund requested</Text>
           <Mono fz="xl" fw={600}>
             {fmt(total)}
           </Mono>
@@ -140,7 +140,7 @@ export default function Step3Review() {
           <Title order={2} fz="lg">
             Remitter notes
           </Title>
-          <Text fz="sm" c="dimmed">
+          <Text fz="sm" c="var(--text-secondary)">
             Included in the request document sent to the OCFO.
           </Text>
         </Group>
@@ -153,21 +153,21 @@ export default function Step3Review() {
             ))}
           </List>
         ) : (
-          <Text c="dimmed">Every remitter matches the payment record.</Text>
+          <Text c="var(--text-secondary)">Every remitter matches the payment record.</Text>
         )}
       </Paper>
 
       <Paper withBorder radius="sm" p="md">
         <Checkbox
-          checked={draft.attested}
-          onChange={(e) => setAttested(e.currentTarget.checked)}
+          checked={draft.certified}
+          onChange={(e) => setCertified(e.currentTarget.checked)}
           label={
             <Text>
-              I confirm that the information in this request is accurate and complete to the best of
+              I certify that the information in this request is accurate and complete to the best of
               my knowledge. By submitting, I am legally submitting this fee refund request to the
               Office of the Chief Financial Officer for review, and I understand that it will be
               transmitted digitally and recorded under my credentials.{' '}
-              <Text component="span" fz="sm" c="dimmed">
+              <Text component="span" fz="sm" c="var(--text-secondary)">
                 (Placeholder wording, to be supplied by counsel.)
               </Text>
             </Text>
@@ -176,12 +176,12 @@ export default function Step3Review() {
       </Paper>
 
       <Group justify="space-between" wrap="wrap">
-        <Text c="dimmed">Submitting sends the request to the OCFO. It can't be edited afterward.</Text>
+        <Text c="var(--text-secondary)">Submitting sends the request to the OCFO. It can't be edited afterward.</Text>
         <Group gap="xs">
           <Button variant="default" disabled={sending} onClick={() => setStep(2)}>
             ← Back to details
           </Button>
-          <Button disabled={!draft.attested} loading={sending} onClick={submit}>
+          <Button disabled={!draft.certified} loading={sending} onClick={submit}>
             Submit to OCFO
           </Button>
         </Group>
@@ -192,7 +192,7 @@ export default function Step3Review() {
 
 const Field = ({ label, children }) => (
   <div>
-    <Text fz="xs" tt="uppercase" c="dimmed" fw={600} lts="0.05em">
+    <Text fz="xs" tt="uppercase" c="var(--text-tertiary)" fw={600} lts="0.05em">
       {label}
     </Text>
     <Text>{children}</Text>

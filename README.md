@@ -35,7 +35,7 @@ remitter on file (manual entry required), and partial refunds.
 3. **Confirm details** — per-fee card with full/partial refund amount and the remitter from
    the payment record; remitters can be corrected (recorded as a note on the request) or
    entered when the record has none. One request-level justification.
-4. **Review & submit** — full summary, remitter notes, legal attestation (placeholder
+4. **Review & submit** — full summary, remitter notes, legal certification (placeholder
    wording), simulated digital submission.
 5. **Confirmation** — permanent request ID, notification fan-out (submitter, OCFO, each
    remitter), and the new row in the history table as "Submitted to OCFO".
@@ -44,7 +44,7 @@ remitter on file (manual entry required), and partial refunds.
 
 - Request IDs, emails, and PDFs are generated client-side; in production these are
   backend-owned so the OCFO record and the download are the same artifact.
-- Attestation wording and the justification list are placeholders pending counsel/business.
+- Certification wording and the justification list are placeholders pending counsel/business.
 - No auth (the real page sits behind existing credentials), no "returned for correction"
   resubmit flow yet, no pagination on the history table.
 

@@ -36,7 +36,7 @@ export default function Step1SelectFees() {
           <Title order={2} fz="lg">
             Fees available for refund
           </Title>
-          <Text fz="sm" c="dimmed" maw={520}>
+          <Text fz="sm" c="var(--text-secondary)" maw={520}>
             Check each fee to include. Fees paid through a service such as PayPal or Splitwise are
             one lump sum: the items are shown for reference and are refunded together.
           </Text>
@@ -92,7 +92,7 @@ export default function Step1SelectFees() {
                         </Text>
                         {fee.items && <LumpSumBadge count={fee.items.length} />}
                       </Group>
-                      <Mono c="dimmed" fz="xs">
+                      <Mono c="var(--text-tertiary)" fz="xs">
                         {fee.id}
                       </Mono>
                     </Table.Td>
@@ -117,13 +117,13 @@ export default function Step1SelectFees() {
                           <Table.Td
                             style={{ paddingLeft: 22, borderLeft: '3px solid var(--mantine-color-gray-4)' }}
                           >
-                            <Text fz="sm" c="dimmed">
+                            <Text fz="sm" c="var(--text-secondary)">
                               {item.desc}
                             </Text>
                           </Table.Td>
                           <Table.Td colSpan={5} />
                           <Table.Td ta="right">
-                            <Mono fz="sm" c="dimmed">
+                            <Mono fz="sm" c="var(--text-secondary)">
                               {fmt(item.cents)}
                             </Mono>
                           </Table.Td>
@@ -138,7 +138,7 @@ export default function Step1SelectFees() {
       </Paper>
 
       <Group justify="space-between" wrap="wrap">
-        <Text c="dimmed">
+        <Text c="var(--text-secondary)">
           <Text component="span" fw={600} c="dark">
             {selectedCount}
           </Text>{' '}

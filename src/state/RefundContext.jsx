@@ -32,7 +32,7 @@ export function RefundProvider({ children }) {
       amounts: {},
       remitters: {},
       justification: { code: null, text: '' },
-      attested: false,
+      certified: false,
       startedAt: nowISO(),
     });
     setStep(1);
@@ -155,7 +155,7 @@ export function RefundProvider({ children }) {
           status: 'submitted',
           statusDate: at.slice(0, 10),
           submittedBy: SUBMITTER,
-          attestedAt: at,
+          certifiedAt: at,
           justification: { ...d.justification, text: d.justification.text.trim() },
           fees,
           total: fees.reduce((s, f) => s + f.refund, 0),
@@ -196,7 +196,7 @@ export function RefundProvider({ children }) {
       setRemitter,
       restoreRemitter,
       setJustification,
-      setAttested: (attested) => patchDraft({ attested }),
+      setCertified: (certified) => patchDraft({ certified }),
       submit,
     }),
     [requests, view, step, draft, sending, lastSubmittedId, nextSeq]

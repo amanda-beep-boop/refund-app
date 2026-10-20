@@ -198,7 +198,7 @@ export const SEED_REQUESTS = [
     status: 'approved',
     statusDate: '2026-07-09',
     submittedBy: SUBMITTER,
-    attestedAt: '2026-06-18T10:14:00',
+    certifiedAt: '2026-06-18T10:14:00',
     justification: { code: 'duplicate', text: '' },
     fees: [
       {
@@ -238,7 +238,7 @@ export const SEED_REQUESTS = [
     status: 'approved',
     statusDate: '2026-07-22',
     submittedBy: SUBMITTER,
-    attestedAt: '2026-07-01T15:40:00',
+    certifiedAt: '2026-07-01T15:40:00',
     justification: { code: 'billing', text: '' },
     fees: [
       {
@@ -278,7 +278,7 @@ export const SEED_REQUESTS = [
     status: 'review',
     statusDate: '2026-07-28',
     submittedBy: SUBMITTER,
-    attestedAt: '2026-07-24T09:02:00',
+    certifiedAt: '2026-07-24T09:02:00',
     justification: { code: 'overpay', text: '' },
     fees: [
       {
@@ -317,7 +317,7 @@ export const SEED_REQUESTS = [
     status: 'review',
     statusDate: '2026-08-14',
     submittedBy: SUBMITTER,
-    attestedAt: '2026-08-11T14:22:00',
+    certifiedAt: '2026-08-11T14:22:00',
     justification: { code: 'notrendered', text: '' },
     fees: [
       {
@@ -361,7 +361,7 @@ export const SEED_REQUESTS = [
     status: 'returned',
     statusDate: '2026-09-10',
     submittedBy: SUBMITTER,
-    attestedAt: '2026-09-02T11:30:00',
+    certifiedAt: '2026-09-02T11:30:00',
     justification: {
       code: 'other',
       text: 'Applicant withdrew before the application was reviewed; fee is refundable under §4.2 of the program rules.',
@@ -401,7 +401,7 @@ export const SEED_REQUESTS = [
     status: 'submitted',
     statusDate: '2026-09-19',
     submittedBy: SUBMITTER,
-    attestedAt: '2026-09-19T16:05:00',
+    certifiedAt: '2026-09-19T16:05:00',
     justification: { code: 'waived', text: '' },
     fees: [
       {

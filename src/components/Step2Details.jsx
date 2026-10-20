@@ -13,7 +13,7 @@ export default function Step2Details() {
 
   return (
     <>
-      <Text c="dimmed" mt={-8} maw={640}>
+      <Text c="var(--text-secondary)" mt={-8} maw={640}>
         Confirm the refund amount and the remitter for each fee. Remitter details come from the
         original payment record; change them only if the record is wrong.
       </Text>
@@ -31,7 +31,7 @@ export default function Step2Details() {
           <Title order={2} fz="lg">
             Reason for this request
           </Title>
-          <Text fz="sm" c="dimmed">
+          <Text fz="sm" c="var(--text-secondary)">
             One justification covers every fee in the request.
           </Text>
         </Group>
@@ -60,7 +60,7 @@ export default function Step2Details() {
       </Paper>
 
       <Group justify="space-between" wrap="wrap">
-        <Text c="dimmed">
+        <Text c="var(--text-secondary)">
           <Text component="span" fw={600} c="dark">
             {fees.length}
           </Text>{' '}

@@ -117,7 +117,7 @@ export default function HistoryTable() {
         <Title order={2} fz="lg">
           Your refund requests
         </Title>
-        <Text fz="sm" c="dimmed">
+        <Text fz="sm" c="var(--text-secondary)">
           Click a request ID to view the full request.
         </Text>
       </Group>
@@ -165,7 +165,7 @@ export default function HistoryTable() {
       </Group>
 
       <Group justify="space-between" px="md" py="xs" bg="gray.0" wrap="wrap">
-        <Text fz="sm" c="dimmed">
+        <Text fz="sm" c="var(--text-secondary)">
           Showing{' '}
           <Text component="span" fw={600} c="dark">
             {rows.length}
@@ -193,19 +193,19 @@ export default function HistoryTable() {
           <Menu.Dropdown>
             <Menu.Item onClick={() => downloadHistoryCsv(exportRows)}>
               CSV
-              <Text fz="xs" c="dimmed">
+              <Text fz="xs" c="var(--text-tertiary)">
                 Spreadsheet-ready table
               </Text>
             </Menu.Item>
             <Menu.Item onClick={() => downloadHistoryDocx(exportRows)}>
               Word document
-              <Text fz="xs" c="dimmed">
+              <Text fz="xs" c="var(--text-tertiary)">
                 .docx with the table
               </Text>
             </Menu.Item>
             <Menu.Item onClick={() => downloadHistoryPdf(exportRows)}>
               PDF
-              <Text fz="xs" c="dimmed">
+              <Text fz="xs" c="var(--text-tertiary)">
                 Printable table
               </Text>
             </Menu.Item>
@@ -228,7 +228,7 @@ export default function HistoryTable() {
               {COLUMNS.map((col) => (
                 <Table.Th key={col.key} ta={col.align}>
                   <UnstyledButton onClick={() => toggleSort(col.key)} aria-label={`Sort by ${col.label}`}>
-                    <Text fz="xs" tt="uppercase" fw={600} lts="0.05em" c={sort.key === col.key ? 'dark' : 'dimmed'}>
+                    <Text fz="xs" tt="uppercase" fw={600} lts="0.05em" c={sort.key === col.key ? 'dark' : 'var(--text-tertiary)'}>
                       {col.label} {sort.key === col.key ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
                     </Text>
                   </UnstyledButton>
@@ -241,7 +241,7 @@ export default function HistoryTable() {
             {rows.length === 0 && (
               <Table.Tr>
                 <Table.Td colSpan={draft ? 8 : 7}>
-                  <Text ta="center" c="dimmed" py="lg">
+                  <Text ta="center" c="var(--text-secondary)" py="lg">
                     {anyFilter ? 'No requests match these filters.' : 'No refund requests yet.'}
                   </Text>
                 </Table.Td>
@@ -259,7 +259,7 @@ export default function HistoryTable() {
                 </Table.Td>
                 <Table.Td>
                   {r.isDraft ? (
-                    <Text c="dimmed">—</Text>
+                    <Text c="var(--text-secondary)">—</Text>
                   ) : (
                     <Anchor component="button" type="button" onClick={() => setOpenId(r.id)} ff="monospace" fw={500}>
                       {r.id}
@@ -268,19 +268,19 @@ export default function HistoryTable() {
                 </Table.Td>
                 <Table.Td>
                   <Text>{CUSTOMERS[r.customer].name}</Text>
-                  <Mono c="dimmed" fz="xs">
+                  <Mono c="var(--text-tertiary)" fz="xs">
                     {r.customer}
                   </Mono>
                 </Table.Td>
                 <Table.Td>
-                  {r.isDraft ? <Text c="dimmed">Not submitted</Text> : fmtDate(r.submittedAt)}
+                  {r.isDraft ? <Text c="var(--text-secondary)">Not submitted</Text> : fmtDate(r.submittedAt)}
                 </Table.Td>
                 <Table.Td>
                   <StatusBadge status={r.status} />
                 </Table.Td>
                 <Table.Td>{fmtDate(r.statusDate)}</Table.Td>
                 <Table.Td ta="right">
-                  {r.isDraft ? <Text c="dimmed">—</Text> : <Mono>{fmt(r.total)}</Mono>}
+                  {r.isDraft ? <Text c="var(--text-secondary)">—</Text> : <Mono>{fmt(r.total)}</Mono>}
                 </Table.Td>
                 {draft && (
                   <Table.Td ta="right">

@@ -57,7 +57,7 @@ export default function RequestModal({ requestId, onClose }) {
           <Field label="Justification">
             {JUSTIFICATION_LABEL[request.justification.code]}
             {request.justification.text && (
-              <Text c="dimmed" fz="sm">
+              <Text c="var(--text-secondary)" fz="sm">
                 {request.justification.text}
               </Text>
             )}
@@ -78,7 +78,7 @@ export default function RequestModal({ requestId, onClose }) {
                 title={STATUS_META[t.status].label}
                 color={STATUS_META[t.status].color}
               >
-                <Text fz="sm" c="dimmed">
+                <Text fz="sm" c="var(--text-secondary)">
                   {fmtDateTime(t.at)}
                 </Text>
                 {t.note && (
@@ -114,13 +114,13 @@ export default function RequestModal({ requestId, onClose }) {
                         <Text fw={600}>{f.desc}</Text>
                         {f.items && <LumpSumBadge count={f.items.length} />}
                       </Group>
-                      <Mono c="dimmed" fz="xs">
+                      <Mono c="var(--text-tertiary)" fz="xs">
                         {f.id}
                       </Mono>
                     </Table.Td>
                     <Table.Td>
                       {fmtDate(f.date)}
-                      <Text fz="sm" c="dimmed">
+                      <Text fz="sm" c="var(--text-secondary)">
                         {f.method}
                         {f.card !== '—' ? ` ${f.card}` : ''}
                       </Text>
@@ -131,17 +131,17 @@ export default function RequestModal({ requestId, onClose }) {
                     <Table.Td ta="right">
                       <Mono>{fmt(f.refund)}</Mono>
                       {f.refund < f.cents && (
-                        <Text fz="xs" c="dimmed">
+                        <Text fz="xs" c="var(--text-tertiary)">
                           partial
                         </Text>
                       )}
                     </Table.Td>
                     <Table.Td>
                       <Text fw={600}>{f.remitter.name}</Text>
-                      <Text fz="sm" c="dimmed">
+                      <Text fz="sm" c="var(--text-secondary)">
                         {f.remitter.address}
                       </Text>
-                      <Text fz="sm" c="dimmed">
+                      <Text fz="sm" c="var(--text-secondary)">
                         {methodLabel(f, f.remitter.method)}
                       </Text>
                       {f.remitterSource !== 'record' && (
@@ -190,12 +190,12 @@ export default function RequestModal({ requestId, onClose }) {
           <Stack gap={4}>
             {request.notifications.map((n, i) => (
               <Group key={i} gap="md" wrap="nowrap" align="baseline">
-                <Text fz="sm" c="dimmed" w={90}>
+                <Text fz="sm" c="var(--text-secondary)" w={90}>
                   {n.role}
                 </Text>
                 <Text fz="sm">
                   {n.name} ·{' '}
-                  <Text component="span" c="dimmed">
+                  <Text component="span" c="var(--text-secondary)">
                     {n.to || 'no email on file — notified by mail to the remittance address'}
                   </Text>
                 </Text>
@@ -204,8 +204,8 @@ export default function RequestModal({ requestId, onClose }) {
           </Stack>
         </div>
 
-        <Text fz="sm" c="dimmed">
-          Attested and submitted by {request.submittedBy.name} on {fmtDateTime(request.attestedAt)}.
+        <Text fz="sm" c="var(--text-secondary)">
+          Certified and submitted by {request.submittedBy.name} on {fmtDateTime(request.certifiedAt)}.
         </Text>
 
         <Divider />
@@ -222,7 +222,7 @@ export default function RequestModal({ requestId, onClose }) {
 
 const Field = ({ label, children }) => (
   <div>
-    <Text fz="xs" tt="uppercase" c="dimmed" fw={600} lts="0.05em">
+    <Text fz="xs" tt="uppercase" c="var(--text-tertiary)" fw={600} lts="0.05em">
       {label}
     </Text>
     <Text>{children}</Text>

@@ -1,0 +1,15 @@
+/* Primary links darken on hover. */
+.mantine-Anchor-root:hover {
+  color: var(--mantine-color-ocfo-7);
+}
+
+/* Completed steps read as a light chip rather than a solid fill. */
+.mantine-Stepper-stepIcon[data-completed] {
+  background-color: var(--mantine-color-ocfo-0);
+  border-color: var(--mantine-color-ocfo-0);
+  color: var(--mantine-color-ocfo-6);
+}
+
+.mantine-Stepper-stepCompletedIcon {
+  color: var(--mantine-color-ocfo-6);
+}

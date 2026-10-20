@@ -15,7 +15,7 @@ export default function FlowPage() {
     <Stack gap="lg">
       <Group justify="space-between" align="flex-start" wrap="wrap">
         <div>
-          <Text fz="sm" c="dimmed">
+          <Text fz="sm" c="var(--text-secondary)">
             Fee Refund Requests /{' '}
             <Text component="span" fw={500} c="dark.3">
               New request
@@ -62,7 +62,7 @@ export default function FlowPage() {
 
 const ContextCell = ({ label, children }) => (
   <div>
-    <Text fz="xs" tt="uppercase" c="dimmed" fw={600} lts="0.05em">
+    <Text fz="xs" tt="uppercase" c="var(--text-tertiary)" fw={600} lts="0.05em">
       {label}
     </Text>
     <Text>{children}</Text>

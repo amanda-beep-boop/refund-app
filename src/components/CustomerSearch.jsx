@@ -46,13 +46,13 @@ export default function CustomerSearch() {
           <Button type="submit">Search</Button>
         </Group>
       </form>
-      <Text fz="sm" c="dimmed" mt="xs">
+      <Text fz="sm" c="var(--text-secondary)" mt="xs">
         Sample accounts: <Code>C-104822</Code>, <Code>C-220917</Code>, <Code>C-301550</Code>
       </Text>
 
       {result === null && (
         <Paper withBorder radius="sm" p="md" mt="md" style={{ borderStyle: 'dashed' }}>
-          <Text c="dimmed">
+          <Text c="var(--text-secondary)">
             No account matches <Mono>{query.trim().toUpperCase()}</Mono>. Check the ID and try
             again.
           </Text>
@@ -67,7 +67,7 @@ export default function CustomerSearch() {
                 <Text fz="lg" fw={600}>
                   {result.name}
                 </Text>
-                <Mono c="dimmed">{result.id}</Mono>
+                <Mono c="var(--text-secondary)">{result.id}</Mono>
               </Group>
               <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
                 <InfoCell label="Team" value={result.team} />
@@ -89,7 +89,7 @@ export default function CustomerSearch() {
 
 const InfoCell = ({ label, value }) => (
   <div>
-    <Text fz="xs" tt="uppercase" c="dimmed" fw={600} lts="0.05em">
+    <Text fz="xs" tt="uppercase" c="var(--text-tertiary)" fw={600} lts="0.05em">
       {label}
     </Text>
     <Text fw={500}>{value}</Text>

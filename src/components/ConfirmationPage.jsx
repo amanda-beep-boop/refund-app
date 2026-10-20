@@ -15,7 +15,7 @@ export default function ConfirmationPage() {
   return (
     <Stack gap="lg">
       <div>
-        <Text fz="sm" c="dimmed">
+        <Text fz="sm" c="var(--text-secondary)">
           Fee Refund Requests /{' '}
           <Text component="span" fw={500} c="dark.3">
             Request submitted
@@ -27,13 +27,13 @@ export default function ConfirmationPage() {
       </div>
 
       <Paper withBorder radius="sm" p="lg">
-        <Text fz="xs" tt="uppercase" c="dimmed" fw={600} lts="0.05em">
+        <Text fz="xs" tt="uppercase" c="var(--text-tertiary)" fw={600} lts="0.05em">
           Request ID
         </Text>
         <Mono fz={32} fw={500}>
           {lastSubmitted.id}
         </Mono>
-        <Text c="dimmed" mt={6} maw={640}>
+        <Text c="var(--text-secondary)" mt={6} maw={640}>
           Submitted {fmtDateTime(lastSubmitted.submittedAt)}. This ID identifies the request through
           OCFO review and final disposition; use it in any correspondence.
         </Text>
@@ -45,7 +45,7 @@ export default function ConfirmationPage() {
           </Chip>
           <Chip label="Customer">
             {customer.name}{' '}
-            <Mono c="dimmed" fz="xs">
+            <Mono c="var(--text-tertiary)" fz="xs">
               {customer.id}
             </Mono>
           </Chip>
@@ -62,12 +62,12 @@ export default function ConfirmationPage() {
         <Stack gap={4}>
           {lastSubmitted.notifications.map((n, i) => (
             <Group key={i} gap="md" wrap="nowrap" align="baseline">
-              <Text fz="sm" c="dimmed" w={90}>
+              <Text fz="sm" c="var(--text-secondary)" w={90}>
                 {n.role}
               </Text>
               <Text fz="sm">
                 {n.name} ·{' '}
-                <Text component="span" c="dimmed">
+                <Text component="span" c="var(--text-secondary)">
                   {n.to || 'no email on file — notified by mail to the remittance address'}
                 </Text>
               </Text>
@@ -93,7 +93,7 @@ export default function ConfirmationPage() {
 
 const Chip = ({ label, children }) => (
   <div>
-    <Text fz="xs" tt="uppercase" c="dimmed" fw={600} lts="0.05em">
+    <Text fz="xs" tt="uppercase" c="var(--text-tertiary)" fw={600} lts="0.05em">
       {label}
     </Text>
     <Text component="div">{children}</Text>
