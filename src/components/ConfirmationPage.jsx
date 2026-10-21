@@ -33,7 +33,7 @@ export default function ConfirmationPage() {
         </Text>
 
         <Divider my="md" />
-        <Group gap="xl" wrap="wrap" align="flex-start">
+        <dl className="field-row">
           <Field label="Status">
             <StatusBadge status={lastSubmitted.status} />
           </Field>
@@ -47,7 +47,7 @@ export default function ConfirmationPage() {
           <Field label="Total refund">
             <Amount cents={lastSubmitted.total} fw={600} />
           </Field>
-        </Group>
+        </dl>
         <Divider my="md" />
 
         <Title order={2} fz="md" mb="xs">

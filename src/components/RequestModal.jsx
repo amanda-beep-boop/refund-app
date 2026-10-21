@@ -26,6 +26,7 @@ export default function RequestModal({ requestId, onClose }) {
       opened
       onClose={onClose}
       size="60rem"
+      closeButtonProps={{ 'aria-label': `Close request ${request.id}` }}
       title={
         <Group gap="sm">
           <Mono fz="lg" fw={500}>
@@ -44,7 +45,10 @@ export default function RequestModal({ requestId, onClose }) {
           <Title order={3} fz="md" mb="sm" id="activity-heading">
             Activity
           </Title>
+          {/* A list of events, each titled by a heading, so screen readers announce how many
+              events there are and can jump between them. */}
           <Timeline
+            role="list"
             active={events.length - 1}
             bulletSize={14}
             lineWidth={2}
@@ -54,7 +58,8 @@ export default function RequestModal({ requestId, onClose }) {
               e.kind === 'enote' ? (
                 <Timeline.Item
                   key={i}
-                  title={enoteTitle(e)}
+                  role="listitem"
+                  title={<EventHeading>{enoteTitle(e)}</EventHeading>}
                   color="var(--mantine-color-gray-6)"
                   bullet={<MailIcon />}
                 >
@@ -68,7 +73,8 @@ export default function RequestModal({ requestId, onClose }) {
               ) : (
                 <Timeline.Item
                   key={i}
-                  title={STATUS_META[e.status].label}
+                  role="listitem"
+                  title={<EventHeading>{STATUS_META[e.status].label}</EventHeading>}
                   color={STATUS_META[e.status].color}
                 >
                   <Text fz="sm" c="dimmed">
@@ -112,7 +118,29 @@ export default function RequestModal({ requestId, onClose }) {
 
 const noteId = (e) => `note-${e.at}`;
 
+// Activity sits under an h3, so each event is an h4.
+const EventHeading = ({ children }) => (
+  <Title order={4} fz="sm" fw={600} lh="inherit">
+    {children}
+  </Title>
+);
+
 // Envelope for E-Note entries, so automated deliveries read differently from status changes.
+// Marks a link that jumps further down this modal rather than navigating away. An arrow, not a
+// chevron: chevrons in this app mean expand or collapse.
+const ArrowDownIcon = () => (
+  <svg viewBox="0 0 16 16" width={14} height={14} aria-hidden="true" style={{ flexShrink: 0 }}>
+    <path
+      d="M8 2.5v10M3.5 8.5 8 13l4.5-4.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 const MailIcon = () => (
   <svg viewBox="0 0 16 16" width={10} height={10} aria-hidden="true">
     <rect x="1.5" y="3.5" width="13" height="9" rx="1" fill="none" stroke="currentColor" strokeWidth="1.6" />
@@ -148,8 +176,15 @@ const PinnedNotice = ({ event }) => {
         </Text>{' '}
         on {fmtDateTime(event.at)}. The OCFO left a note.
       </Text>
-      <Anchor href={`#${noteId(event)}`} onClick={goToNote} fz="sm" fw={600}>
+      <Anchor
+        href={`#${noteId(event)}`}
+        onClick={goToNote}
+        fz="sm"
+        fw={600}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+      >
         Read the note in Activity
+        <ArrowDownIcon />
       </Anchor>
     </Group>
   );

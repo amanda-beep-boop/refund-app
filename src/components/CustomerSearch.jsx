@@ -5,7 +5,6 @@ import {
   Code,
   Group,
   Paper,
-  SimpleGrid,
   Stack,
   Text,
   TextInput,
@@ -81,14 +80,14 @@ export default function CustomerSearch() {
                 </Title>
                 <Mono c="dimmed">{result.id}</Mono>
               </Group>
-              <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
+              <dl className="field-grid">
                 <Field label="Team">{result.team}</Field>
                 <Field label="Position">{result.position}</Field>
                 <Field label="Account age">
                   {accountAge(result.accountOpened)} (since {fmtDate(result.accountOpened)})
                 </Field>
                 <Field label="Fees on file">{result.fees.length}</Field>
-              </SimpleGrid>
+              </dl>
             </Stack>
             <Button onClick={() => startDraft(result.id)} rightSection={<Chevron />}>
               Start refund request

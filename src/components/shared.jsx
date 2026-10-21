@@ -64,12 +64,18 @@ export const FieldLabel = ({ children, ...props }) => (
 
 // A label above its value. Values are 14px; pass several lines as children with the first dark
 // and any details after it gray (<Text inherit c="dimmed">).
+// Renders a term/description pair, so it must sit inside a <dl>: screen readers then announce
+// each value with its label.
 export const Field = ({ label, children }) => (
   <div>
-    <FieldLabel>{label}</FieldLabel>
-    <Text component="div" fz="sm" mt={2}>
-      {children}
-    </Text>
+    <dt>
+      <FieldLabel component="span">{label}</FieldLabel>
+    </dt>
+    <dd>
+      <Text component="div" fz="sm" mt={2}>
+        {children}
+      </Text>
+    </dd>
   </div>
 );
 
@@ -165,7 +171,13 @@ export const DiscardDraftButton = ({ size = 'sm' }) => {
       <Button size={size} variant="subtle" color="red" onClick={() => setOpen(true)}>
         Discard draft
       </Button>
-      <Modal opened={open} onClose={() => setOpen(false)} title="Discard this draft?" centered>
+      <Modal
+        opened={open}
+        onClose={() => setOpen(false)}
+        title="Discard this draft?"
+        centered
+        closeButtonProps={{ 'aria-label': 'Close' }}
+      >
         <Text>The fees, amounts and details you've entered will be deleted. This can't be undone.</Text>
         <Group justify="flex-end" mt="lg" gap="xs">
           <Button variant="default" onClick={() => setOpen(false)} data-autofocus>

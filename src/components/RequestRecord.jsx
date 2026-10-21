@@ -1,4 +1,4 @@
-import { Box, List, Table, Text, Title } from '@mantine/core';
+import { Box, List, Table, Text, Title, VisuallyHidden } from '@mantine/core';
 import { CUSTOMERS, JUSTIFICATION_LABEL } from '../data/mockData';
 import { fmtDate, fmtDateTime } from '../lib/format';
 import {
@@ -29,6 +29,9 @@ export default function RequestRecord({
   );
   const { code, text } = request.justification;
   const headingId = `record-heading-${request.id || 'draft'}`;
+  // Sections inside the record are headings one level below its title, so screen reader users
+  // can jump between them.
+  const sectionHeading = `h${headingOrder + 1}`;
 
   return (
     <section className="form-record" aria-labelledby={headingId}>
@@ -38,7 +41,7 @@ export default function RequestRecord({
         </Title>
       </div>
 
-      <div className="form-record-fields">
+      <dl className="form-record-fields">
         <Field label="Customer">
           <Text inherit>{c.name}</Text>
           <Text inherit c="dimmed">
@@ -54,29 +57,33 @@ export default function RequestRecord({
             {request.submittedBy.email}
           </Text>
         </Field>
-      </div>
+      </dl>
 
-      <div className="form-record-section form-record-pad">
+      <dl className="form-record-section form-record-pad field-stack">
         <Field label="Justification">
           <Text inherit>{JUSTIFICATION_LABEL[code]}</Text>
           <Text inherit c="dimmed" className="readable">
             Definition at the time of submission: {justificationDefinition(request.justification)}
           </Text>
-          {text && (
-            <>
-              <FieldLabel mt="sm">Submitter’s explanation</FieldLabel>
-              <Text inherit className="readable">
-                {text}
-              </Text>
-            </>
-          )}
         </Field>
-      </div>
+        {text && (
+          <Field label="Submitter’s explanation">
+            <Text inherit className="readable">
+              {text}
+            </Text>
+          </Field>
+        )}
+      </dl>
 
       <div className="form-record-section">
         <Table.ScrollContainer minWidth={760} type="native">
           {/* Invoice layout: refunds sit in the last column so they line up with the total. */}
           <Table verticalSpacing="sm" horizontalSpacing="md" fz="sm" styles={{ td: { verticalAlign: 'top' } }}>
+            {/* Names the table for screen readers (T to jump to tables); the column headers
+                already make it clear on screen. */}
+            <caption>
+              <VisuallyHidden>Fees in this request</VisuallyHidden>
+            </caption>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th w="26%">Fee</Table.Th>
@@ -148,7 +155,7 @@ export default function RequestRecord({
 
       {notes.length > 0 && (
         <div className="form-record-section form-record-pad">
-          <FieldLabel>Remitter notes</FieldLabel>
+          <FieldLabel component={sectionHeading}>Remitter notes</FieldLabel>
           <List spacing={4} fz="sm" mt={4} className="readable">
             {notes.map((n) => (
               <List.Item key={n.feeId}>
@@ -162,7 +169,7 @@ export default function RequestRecord({
       <div className="form-record-footer">
         {footer ?? (
           <>
-            <FieldLabel>Certification</FieldLabel>
+            <FieldLabel component={sectionHeading}>Certification</FieldLabel>
             <Text fz="sm">
               Certified and submitted by {request.submittedBy.name} on{' '}
               {fmtDateTime(request.certifiedAt)}. Routed to the Office of the Chief Financial

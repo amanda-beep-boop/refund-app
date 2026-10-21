@@ -51,6 +51,13 @@ export const theme = createTheme({
     ],
   },
   defaultRadius: 'sm',
+  // Keyboard access for every overlay (Section 508): Escape closes it, focus stays inside while
+  // it's open, and focus returns to whatever opened it. These match Mantine's defaults; they're
+  // set here so the requirement is explicit and no modal or menu can drift from it.
+  components: {
+    Modal: { defaultProps: { closeOnEscape: true, trapFocus: true, returnFocus: true } },
+    Menu: { defaultProps: { closeOnEscape: true, returnFocus: true } },
+  },
 });
 
 // primaryShade applies to every color. Every non-primary color (red, blue, yellow, …) is

@@ -44,6 +44,33 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Field lists are native <dl>s (see Field in shared.jsx); drop the browser's default indents. */
+dl,
+dd {
+  margin: 0;
+}
+
+/* Fields side by side, wrapping as space runs out. */
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--mantine-spacing-md);
+}
+
+/* Fields in a row sized to their content. */
+.field-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--mantine-spacing-xl);
+}
+
+/* Fields stacked one under another. */
+.field-stack {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+}
+
 /* Semantic grouping only; the legend is styled as a field label. */
 .plain-fieldset {
   border: 0;

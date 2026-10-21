@@ -56,6 +56,32 @@ remitter on file (manual entry required), and partial refunds.
   `Annotation`: an icon plus text with no fill, so they can't be mistaken for buttons
   (neutral gray, or amber for anything the analyst should check).
 
+## Accessibility testing (Section 508 / WCAG 2.0 AA)
+
+Tab moves only between things you can act on. Content is read by scrolling (sighted keyboard
+users) or with screen reader reading commands, so static text is deliberately not a Tab stop.
+Check each of these in Chrome, Firefox, Edge and Safari, and with NVDA (Windows) and VoiceOver
+(macOS):
+
+- **Request modal, keyboard only:** open a request ID with Enter. Focus lands inside the modal
+  and Tab cycles through the close button, "Read the note in Activity" (returned requests only),
+  Close and Download without leaving the modal. Arrow keys, Page Down and Home scroll the
+  content. Escape closes the modal and focus returns to the request ID you opened.
+- **Every overlay closes on Escape** and returns focus to whatever opened it: the request
+  modal, the "Discard this draft?" confirmation (the draft is kept), and the Download menu on
+  the history table. This is set app-wide in `theme.js`, so new modals and menus inherit it.
+- **"Read the note in Activity":** activating it scrolls to the OCFO note and moves focus there,
+  with a visible outline.
+- **Screen reader structure:** the close button is announced as "Close request RR-…". The
+  headings (H key) are the request ID and status, Submitted request, Remitter notes and
+  Certification (when present), Activity, then each Activity event. Customer, Requested by and
+  Justification are read with their labels. T finds the "Fees in this request" table, and its
+  cells are announced with their column headers. Activity is announced as a list with its
+  number of events.
+- **Safari:** by default Safari's Tab key skips links (Option+Tab reaches them). Testers should
+  turn on Settings → Advanced → "Press Tab to highlight each item" first. This is a browser
+  setting, not an app defect.
+
 ## Known POC shortcuts
 
 - Request IDs, emails, and PDFs are generated client-side; in production these are
