@@ -1,19 +1,29 @@
 import { Button, Group, Paper, Select, Stack, Text, Textarea, Title } from '@mantine/core';
 import { useRefund } from '../state/RefundContext';
-import { JUSTIFICATIONS, JUSTIFICATION_DEFINITION } from '../data/mockData';
-import { amountValid, justificationValid, remitterValid, step2Valid } from '../lib/selectors';
+import { JUSTIFICATIONS } from '../data/mockData';
+import {
+  amountValid,
+  justificationValid,
+  justificationDefinition,
+  remarkValid,
+  remitterValid,
+  step2Valid,
+} from '../lib/selectors';
 import { Amount, Chevron, DisabledHint, IncompleteLabel } from './shared';
 import FeeCard from './FeeCard';
 
 export default function Step2Details() {
-  const { draft, fees, total, setJustification, setStep } = useRefund();
+  const { draft, fees, total, setJustification, setRemark, setStep } = useRefund();
   const canContinue = step2Valid(draft);
   const justOk = justificationValid(draft);
+  const remarkOk = remarkValid(draft);
+  const reasonOk = justOk && remarkOk;
 
   const missing = [
     ...fees.filter((f) => !amountValid(f, draft)).map((f) => `fix the refund amount for ${f.desc}`),
     ...fees.filter((f) => !remitterValid(f, draft)).map((f) => `add the remitter for ${f.desc}`),
-    ...(justOk ? [] : [draft.justification.code === 'other' ? 'describe the reason' : 'choose a justification']),
+    ...(justOk ? [] : ['choose a justification']),
+    ...(remarkOk ? [] : ['add a requester remark']),
   ];
 
   return (
@@ -30,17 +40,17 @@ export default function Step2Details() {
       <Paper
         withBorder
         radius="sm"
-        style={justOk ? undefined : { borderColor: 'var(--border-warning)' }}
+        style={reasonOk ? undefined : { borderColor: 'var(--border-warning)' }}
       >
         <Group justify="space-between" p="md" wrap="wrap">
           <Group gap="sm" align="baseline">
             <Title order={2} fz="lg">
               Reason for this request
             </Title>
-            {!justOk && <IncompleteLabel />}
+            {!reasonOk && <IncompleteLabel />}
           </Group>
           <Text fz="sm" c="dimmed">
-            One justification covers every fee in the request.
+            One justification and remark cover every fee in the request.
           </Text>
         </Group>
         <Stack p="md" pt={0} gap="sm">
@@ -56,20 +66,21 @@ export default function Step2Details() {
           {/* The definition is recorded with the request, so show what the analyst is choosing. */}
           {draft.justification.code && (
             <Text fz="sm" c="dimmed" className="readable" mt={-4}>
-              Definition: {JUSTIFICATION_DEFINITION[draft.justification.code]}
+              Definition: {justificationDefinition(draft.justification)}
             </Text>
           )}
-          {draft.justification.code === 'other' && (
-            <Textarea
-              label="Describe the reason"
-              description="Why should these fees be refunded?"
-              required
-              autosize
-              minRows={3}
-              value={draft.justification.text}
-              onChange={(e) => setJustification({ text: e.currentTarget.value })}
-            />
-          )}
+          {/* Required on every request, whatever the justification; for "Other" it is also where
+              the analyst explains the reason. */}
+          <Textarea
+            label="Requester Remark"
+            description="A short summary of what is being refunded and why."
+            required
+            autosize
+            minRows={3}
+            maw={640}
+            value={draft.remark}
+            onChange={(e) => setRemark(e.currentTarget.value)}
+          />
         </Stack>
       </Paper>
 

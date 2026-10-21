@@ -30,7 +30,8 @@ export function RefundProvider({ children }) {
       collapsed: new Set(),
       amounts: {},
       remitters: {},
-      justification: { code: null, text: '' },
+      justification: { code: null },
+      remark: '',
       certified: false,
       startedAt: nowISO(),
     });
@@ -100,6 +101,8 @@ export function RefundProvider({ children }) {
   const setJustification = (patch) =>
     setDraft((d) => ({ ...d, justification: { ...d.justification, ...patch } }));
 
+  const setRemark = (remark) => setDraft((d) => ({ ...d, remark }));
+
   const submit = () => {
     if (!draft) return;
     const d = draft;
@@ -154,6 +157,7 @@ export function RefundProvider({ children }) {
       setRemitter,
       restoreRemitter,
       setJustification,
+      setRemark,
       setCertified: (certified) => patchDraft({ certified }),
       submit,
     }),

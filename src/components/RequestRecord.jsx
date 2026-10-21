@@ -27,7 +27,7 @@ export default function RequestRecord({
     (f) => f.remitterSource,
     (f) => f.recordRemitter
   );
-  const { code, text } = request.justification;
+  const { code } = request.justification;
   const headingId = `record-heading-${request.id || 'draft'}`;
   // Sections inside the record are headings one level below its title, so screen reader users
   // can jump between them.
@@ -59,20 +59,19 @@ export default function RequestRecord({
         </Field>
       </dl>
 
+      {/* The remark summarizes the whole request, so it leads; the justification follows. */}
       <dl className="form-record-section form-record-pad field-stack">
+        <Field label="Requester Remark">
+          <Text inherit className="readable" style={{ whiteSpace: 'pre-line' }}>
+            {request.remark}
+          </Text>
+        </Field>
         <Field label="Justification">
           <Text inherit>{JUSTIFICATION_LABEL[code]}</Text>
           <Text inherit c="dimmed" className="readable">
             Definition at the time of submission: {justificationDefinition(request.justification)}
           </Text>
         </Field>
-        {text && (
-          <Field label="Submitter’s explanation">
-            <Text inherit className="readable">
-              {text}
-            </Text>
-          </Field>
-        )}
       </dl>
 
       <div className="form-record-section">

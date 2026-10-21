@@ -13,37 +13,16 @@ const COLLEAGUES = {
 };
 export const OCFO = { name: 'OCFO Refund Review', email: 'refunds@ocfo.example' };
 
-// Definitions are placeholder wording pending business/counsel review. A request stores the
-// definition in force when it was certified, so later edits here don't rewrite old records.
+// Reasons an analyst can give for a refund. Definitions for the first three are pending from the
+// business (null until then). A request stores the definition in force when it was certified, so
+// later edits here don't rewrite old records.
 export const JUSTIFICATIONS = [
-  {
-    value: 'duplicate',
-    label: 'Duplicate payment',
-    definition: 'The customer paid the same fee more than once for the same service or period.',
-  },
-  {
-    value: 'billing',
-    label: 'Billing error',
-    definition: 'The fee was charged in error, at the wrong amount, or to the wrong account.',
-  },
-  {
-    value: 'notrendered',
-    label: 'Service not rendered',
-    definition: 'The fee was paid for a service the agency did not provide.',
-  },
-  {
-    value: 'overpay',
-    label: 'Overpayment',
-    definition: 'The customer paid more than the amount owed for the fee.',
-  },
-  {
-    value: 'waived',
-    label: 'Fee waived',
-    definition: 'The fee was waived under an approved waiver or exemption after it was paid.',
-  },
+  { value: 'processing', label: 'Processing Error', definition: null },
+  { value: 'clockExpired', label: 'Clock Expired', definition: null },
+  { value: 'rejected', label: 'Case Rejected', definition: null },
   {
     value: 'other',
-    label: 'Other reason',
+    label: 'Other',
     definition:
       'A reason not covered by the standard justifications. The submitter explains it in their own words.',
   },
@@ -226,7 +205,9 @@ export const SEED_REQUESTS = [
     statusDate: '2026-07-09',
     submittedBy: SUBMITTER,
     certifiedAt: '2026-06-18T10:14:00',
-    justification: { code: 'duplicate', text: '' },
+    justification: { code: 'rejected' },
+    remark:
+      'Refund of the $300.00 spring field reservation deposit. The reservation case was rejected, so the deposit is returned in full.',
     fees: [
       {
         id: 'F-89870',
@@ -263,7 +244,9 @@ export const SEED_REQUESTS = [
     statusDate: '2026-07-22',
     submittedBy: COLLEAGUES.okafor,
     certifiedAt: '2026-07-01T15:40:00',
-    justification: { code: 'billing', text: '' },
+    justification: { code: 'processing' },
+    remark:
+      'Refund of the $220.00 inspection rescheduling fee, charged in error when staff moved the inspection.',
     fees: [
       {
         id: 'F-87455',
@@ -300,7 +283,9 @@ export const SEED_REQUESTS = [
     statusDate: '2026-07-28',
     submittedBy: SUBMITTER,
     certifiedAt: '2026-07-24T09:02:00',
-    justification: { code: 'overpay', text: '' },
+    justification: { code: 'processing' },
+    remark:
+      'Partial refund of $95.00 of the $145.00 vendor badge fee. The fee was keyed at the wrong rate; only the overcharge is refunded.',
     fees: [
       {
         id: 'F-89901',
@@ -336,7 +321,9 @@ export const SEED_REQUESTS = [
     statusDate: '2026-08-14',
     submittedBy: COLLEAGUES.lindqvist,
     certifiedAt: '2026-08-11T14:22:00',
-    justification: { code: 'notrendered', text: '' },
+    justification: { code: 'clockExpired' },
+    remark:
+      'Refund of the $180.00 expedited review fee. The expedited review clock expired before the review was completed.',
     fees: [
       {
         id: 'F-87990',
@@ -376,10 +363,9 @@ export const SEED_REQUESTS = [
     statusDate: '2026-09-10',
     submittedBy: COLLEAGUES.okafor,
     certifiedAt: '2026-09-02T11:30:00',
-    justification: {
-      code: 'other',
-      text: 'Applicant withdrew before the application was reviewed; fee is refundable under §4.2 of the program rules.',
-    },
+    justification: { code: 'other' },
+    remark:
+      'Refund of the $120.00 application processing fee. The applicant withdrew before the application was reviewed; the fee is refundable under §4.2 of the program rules.',
     fees: [
       {
         id: 'F-90877',
@@ -417,7 +403,9 @@ export const SEED_REQUESTS = [
     statusDate: '2026-09-19',
     submittedBy: SUBMITTER,
     certifiedAt: '2026-09-19T16:05:00',
-    justification: { code: 'waived', text: '' },
+    justification: { code: 'rejected' },
+    remark:
+      'Refund of the $60.00 key deposit. The facility access case was rejected, so no key was issued.',
     fees: [
       {
         id: 'F-90588',

@@ -35,16 +35,18 @@ remitter on file (manual entry required), and partial refunds.
    default, selectable only as a whole.
 3. **Confirm details** — per-fee card with full/partial refund amount and the remitter from
    the payment record; remitters can be corrected (recorded as a note on the request) or
-   entered when the record has none. One request-level justification.
-4. **Review & submit** — full summary, remitter notes, legal certification (placeholder
-   wording), simulated digital submission.
+   entered when the record has none. One request-level justification
+   (Processing Error, Clock Expired, Case Rejected or Other) and a required Requester Remark: a
+   short summary of what is being refunded and why.
+4. **Review & submit** — a preview of the exact record the OCFO will receive, with the legal
+   certification (placeholder wording) as its closing line; simulated digital submission.
 5. **Confirmation** — permanent request ID, the E-Note emails sent (to the submitter and the
    OCFO; remitters are never notified), and the new row in the history table as "Submitted
    to OCFO".
 6. **Request record** — the modal behind each request ID is a living record. On top, a
    snapshot of what was submitted, laid out like an invoice: customer and requester, the
-   justification with its definition as it stood at submission, fees with explicit refund
-   destinations, and the certification. Below it, Activity: status changes, OCFO notes, and
+   Requester Remark, the justification with its definition as it stood at submission, fees
+   with explicit refund destinations, and the certification. Below it, Activity: status changes, OCFO notes, and
    the deliveries made by E-Note (the automated notification system). A note on the current
    status is pinned at the top and links to Activity. The PDF download mirrors the record
    using the same wording.
@@ -86,8 +88,9 @@ Check each of these in Chrome, Firefox, Edge and Safari, and with NVDA (Windows)
 
 - Request IDs, emails, and PDFs are generated client-side; in production these are
   backend-owned so the OCFO record and the download are the same artifact.
-- Certification wording, the justification list and each justification's definition are
-  placeholders pending counsel/business. In production the backend should store the
+- Certification wording is a placeholder pending counsel. Definitions for Processing Error,
+  Clock Expired and Case Rejected are pending from the business; the app shows "Definition to
+  be provided" until they're added in `src/data/mockData.js`. In production the backend should store the
   definition with each request, as the POC does at submission.
 - E-Note deliveries are simulated; notifications currently go out only at submission.
 - No auth (the real page sits behind existing credentials), no "returned for correction"

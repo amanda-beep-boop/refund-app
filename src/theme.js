@@ -1,4 +1,4 @@
-import { alpha, createTheme, DEFAULT_THEME } from '@mantine/core';
+import { alpha, createTheme, DEFAULT_THEME, ScrollArea } from '@mantine/core';
 
 // Text and status colors, each checked for at least 4.5:1 contrast (WCAG 2.1 AA) against
 // white, the canvas and inset surfaces, and brand.0.
@@ -55,7 +55,18 @@ export const theme = createTheme({
   // it's open, and focus returns to whatever opened it. These match Mantine's defaults; they're
   // set here so the requirement is explicit and no modal or menu can drift from it.
   components: {
-    Modal: { defaultProps: { closeOnEscape: true, trapFocus: true, returnFocus: true } },
+    // Field hints use the app's 14px detail size, not Mantine's 12px default.
+    InputWrapper: { styles: { description: { fontSize: 'var(--mantine-font-size-sm)' } } },
+    Modal: {
+      defaultProps: {
+        closeOnEscape: true,
+        trapFocus: true,
+        returnFocus: true,
+        // Scroll inside Mantine's scroll area: a native scrollbar runs the full height of the
+        // modal's edge and squares off its rounded corners where scrollbars are always shown.
+        scrollAreaComponent: ScrollArea.Autosize,
+      },
+    },
     Menu: { defaultProps: { closeOnEscape: true, returnFocus: true } },
   },
 });

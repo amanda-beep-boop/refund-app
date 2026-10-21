@@ -6,7 +6,7 @@ import { parseCents, dollars, fmt, methodLabel } from './format';
 //   customer: 'C-...', selected: Set<feeId>, collapsed: Set<feeId>,
 //   amounts: { [feeId]: { mode: 'full'|'partial', input: '12.34' } },
 //   remitters: { [feeId]: { editing, touched, name, address, method } },
-//   justification: { code, text }, certified: bool, startedAt: iso,
+//   justification: { code }, remark: string, certified: bool, startedAt: iso,
 // }
 
 export const draftCustomer = (draft) => (draft ? CUSTOMERS[draft.customer] : null);
@@ -59,13 +59,15 @@ export const feeValid = (fee, draft) => amountValid(fee, draft) && remitterValid
 export const draftTotal = (draft) =>
   selectedFees(draft).reduce((s, f) => s + (amountValid(f, draft) ? refundCents(f, draft) : 0), 0);
 
-export const justificationValid = (draft) => {
-  const j = draft.justification;
-  return Boolean(j.code) && (j.code !== 'other' || Boolean(j.text.trim()));
-};
+export const justificationValid = (draft) => Boolean(draft.justification.code);
+
+// The Requester Remark (a short summary of what is refunded and why) is required on every request.
+export const remarkValid = (draft) => Boolean(draft.remark.trim());
 
 export const step2Valid = (draft) =>
-  selectedFees(draft).every((f) => feeValid(f, draft)) && justificationValid(draft);
+  selectedFees(draft).every((f) => feeValid(f, draft)) &&
+  justificationValid(draft) &&
+  remarkValid(draft);
 
 // Notes recorded on the request document when a remitter was changed or
 // entered manually. Works for both drafts (via accessor fns) and submitted
@@ -118,10 +120,10 @@ export const draftRequest = (draft) => {
     customer: customer.id,
     submittedBy: SUBMITTER,
     justification: {
-      ...draft.justification,
-      text: draft.justification.text.trim(),
+      code: draft.justification.code,
       definition: JUSTIFICATION_DEFINITION[draft.justification.code],
     },
+    remark: draft.remark.trim(),
     fees,
     total: fees.reduce((s, f) => s + f.refund, 0),
   };
@@ -142,8 +144,9 @@ export const refundExtentLabel = (f) => (f.refund < f.cents ? 'Partial refund' :
 export const deliveryLabel = (n) => `Emailed to ${n.to}`;
 
 // Requests store the definition in force when they were certified; older records predate that,
-// so they fall back to the current one.
-export const justificationDefinition = (j) => j.definition ?? JUSTIFICATION_DEFINITION[j.code];
+// so they fall back to the current one. Some definitions are still pending from the business.
+export const justificationDefinition = (j) =>
+  j.definition ?? JUSTIFICATION_DEFINITION[j.code] ?? 'Definition to be provided.';
 
 // Status changes and E-Note deliveries as one chronological list. Notifications sent at the same
 // moment form one E-Note entry, placed right after the status change that triggered it.

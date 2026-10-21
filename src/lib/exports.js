@@ -205,20 +205,23 @@ export function downloadRequestPdf(request) {
     ],
   });
 
+  // Requester Remark leads, then the justification, matching the record.
   const j = request.justification;
+  const label = (content) => [
+    { content, styles: { ...labelStyle, cellPadding: { top: 10, right: 6, bottom: 2, left: 0 } } },
+  ];
   autoTable(doc, {
     startY: after(10),
     margin: { left: M + 10, right: M + 10 },
     theme: 'plain',
     styles: base,
     headStyles: labelStyle,
-    head: [['Justification']],
+    head: [['Requester Remark']],
     body: [
+      [request.remark],
+      label('Justification'),
       [JUSTIFICATION_LABEL[j.code]],
       [gray(`Definition at the time of submission: ${justificationDefinition(j)}`)],
-      ...(j.text
-        ? [[{ content: 'Submitter’s explanation', styles: { ...labelStyle, cellPadding: { top: 10, bottom: 2, left: 0 } } }], [j.text]]
-        : []),
     ],
   });
 
