@@ -52,7 +52,11 @@ export const accountAge = (openedISO) => {
   return y ? `${y} yr${y > 1 ? 's' : ''} ${m} mo` : `${m} mo`;
 };
 
+// How a refund is paid out, stated literally. Lowercase so it reads inside a sentence
+// ("Refund method: …"); capitalize it where it stands alone, such as a select option.
 export const methodLabel = (fee, method) =>
   method === 'check'
-    ? 'Paper check to the remittance address'
-    : `Original payment method: ${fee.instrument}`;
+    ? 'paper check mailed to the remittance address'
+    : `returned to the original payment, ${fee.instrument}`;
+
+export const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);

@@ -1,6 +1,6 @@
 import { Button, Group, Paper, Select, Stack, Text, Textarea, Title } from '@mantine/core';
 import { useRefund } from '../state/RefundContext';
-import { JUSTIFICATIONS } from '../data/mockData';
+import { JUSTIFICATIONS, JUSTIFICATION_DEFINITION } from '../data/mockData';
 import { amountValid, justificationValid, remitterValid, step2Valid } from '../lib/selectors';
 import { Amount, Chevron, DisabledHint, IncompleteLabel } from './shared';
 import FeeCard from './FeeCard';
@@ -53,6 +53,12 @@ export default function Step2Details() {
             onChange={(code) => setJustification({ code })}
             maw={320}
           />
+          {/* The definition is recorded with the request, so show what the analyst is choosing. */}
+          {draft.justification.code && (
+            <Text fz="sm" c="dimmed" className="readable" mt={-4}>
+              Definition: {JUSTIFICATION_DEFINITION[draft.justification.code]}
+            </Text>
+          )}
           {draft.justification.code === 'other' && (
             <Textarea
               label="Describe the reason"
@@ -72,7 +78,7 @@ export default function Step2Details() {
           <Text component="span" fw={600}>
             {fees.length}
           </Text>{' '}
-          fee{fees.length === 1 ? '' : 's'} · total refund <Amount cents={total} fw={600} />
+          fee{fees.length === 1 ? '' : 's'}, total refund <Amount cents={total} fw={600} />
         </Text>
         <Stack gap={4} align="flex-end" maw={520}>
           <Group gap="xs">

@@ -3,6 +3,7 @@ import { Button, Divider, Group, Paper, Stack, Text, Title } from '@mantine/core
 import { useRefund } from '../state/RefundContext';
 import { CUSTOMERS } from '../data/mockData';
 import { fmtDateTime } from '../lib/format';
+import { enoteTitle } from '../lib/selectors';
 import { StatusBadge, Mono, Amount, Field, FieldLabel, Breadcrumb, NotificationList } from './shared';
 import RequestModal from './RequestModal';
 
@@ -32,12 +33,15 @@ export default function ConfirmationPage() {
         </Text>
 
         <Divider my="md" />
-        <Group gap="xl" wrap="wrap">
+        <Group gap="xl" wrap="wrap" align="flex-start">
           <Field label="Status">
             <StatusBadge status={lastSubmitted.status} />
           </Field>
           <Field label="Customer">
-            {customer.name} <Mono c="dimmed">{customer.id}</Mono>
+            <Text inherit>{customer.name}</Text>
+            <Text inherit c="dimmed">
+              Customer ID <Mono fz={13} c="inherit">{customer.id}</Mono>
+            </Text>
           </Field>
           <Field label="Fees">{lastSubmitted.fees.length}</Field>
           <Field label="Total refund">
@@ -47,7 +51,7 @@ export default function ConfirmationPage() {
         <Divider my="md" />
 
         <Title order={2} fz="md" mb="xs">
-          Notifications sent
+          {enoteTitle({ notified: lastSubmitted.notifications })}
         </Title>
         <NotificationList notifications={lastSubmitted.notifications} />
 

@@ -12,13 +12,15 @@ import {
   Title,
 } from '@mantine/core';
 import { useRefund } from '../state/RefundContext';
-import { fmt, fmtDate, dollars, methodLabel } from '../lib/format';
+import { fmt, fmtDate, dollars, methodLabel, capitalize } from '../lib/format';
 import {
   amountValid,
   remitterSource,
   remitterValid,
   refundCents,
   feeValid,
+  paidLabel,
+  refundMethodLabel,
 } from '../lib/selectors';
 import { Mono, Amount, FieldGroup, IncompleteLabel, RemitterSourceAnnotation, LumpSumAnnotation } from './shared';
 
@@ -45,17 +47,25 @@ export default function FeeCard({ fee }) {
       style={invalid ? { borderColor: 'var(--border-warning)' } : undefined}
     >
       <Group justify="space-between" p="md" wrap="wrap" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-        <Group gap={8} align="baseline">
-          <Title order={2} fz="md" id={`fee-${fee.id}-title`}>
-            {fee.desc}
-          </Title>
-          {fee.items && <LumpSumAnnotation />}
-          <Mono c="dimmed">{fee.id}</Mono>
-          {invalid && <IncompleteLabel />}
-        </Group>
+        <div>
+          <Group gap="sm" align="baseline">
+            <Title order={2} fz="md" id={`fee-${fee.id}-title`}>
+              {fee.desc}
+            </Title>
+            {invalid && <IncompleteLabel />}
+          </Group>
+          <Group gap="md" align="baseline">
+            <Text fz="sm" c="dimmed">
+              Fee ID <Mono fz={13} c="inherit">{fee.id}</Mono>
+            </Text>
+            {fee.items && <LumpSumAnnotation count={fee.items.length} />}
+          </Group>
+        </div>
         <Text fz="sm">
-          Paid {fmtDate(fee.date)} · {fee.method}
-          {fee.card !== '—' ? ` ${fee.card}` : ''} · <Amount cents={fee.cents} fw={600} />
+          Paid {fmtDate(fee.date)}:{' '}
+          <Text component="span" inherit c="dimmed">
+            {paidLabel(fee)}
+          </Text>
         </Text>
       </Group>
 
@@ -126,8 +136,8 @@ export default function FeeCard({ fee }) {
               <Select
                 label="Refund method"
                 data={[
-                  { value: 'original', label: methodLabel(fee, 'original') },
-                  { value: 'check', label: methodLabel(fee, 'check') },
+                  { value: 'original', label: capitalize(methodLabel(fee, 'original')) },
+                  { value: 'check', label: capitalize(methodLabel(fee, 'check')) },
                 ]}
                 value={remitter.method}
                 onChange={(method) => setRemitter(fee.id, { method: method || 'original' })}
@@ -172,11 +182,15 @@ export default function FeeCard({ fee }) {
             </Stack>
           ) : (
             <Stack gap="xs">
-              <div>
-                <Text fw={600}>{remitter.name}</Text>
-                <Text>{remitter.address}</Text>
-                <Text>{methodLabel(fee, remitter.method)}</Text>
-              </div>
+              <Text component="div" fz="sm">
+                <Text inherit>{remitter.name}</Text>
+                <Text inherit c="dimmed">
+                  {remitter.address}
+                </Text>
+                <Text inherit c="dimmed">
+                  {refundMethodLabel(fee, remitter.method)}
+                </Text>
+              </Text>
               <Group gap="xs">
                 <RemitterSourceAnnotation source={source} />
                 <Button

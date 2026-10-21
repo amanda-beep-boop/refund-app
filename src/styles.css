@@ -3,9 +3,19 @@ body {
   background-color: var(--surface-canvas);
 }
 
-/* Table header rows are recessed within their card. */
+/* Table header rows are recessed within their card, and column headers read as labels:
+   gray, like field labels. A footer row (a total) stays dark like a value. */
 .mantine-Table-thead {
   background-color: var(--surface-inset);
+}
+
+.mantine-Table-th {
+  color: var(--mantine-color-dimmed);
+  font-weight: 600;
+}
+
+.mantine-Table-tfoot .mantine-Table-th {
+  color: inherit;
 }
 
 /* Primary links darken on hover. */
@@ -53,6 +63,7 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--mantine-radius-sm);
   overflow: hidden;
+  background-color: var(--mantine-color-body);
 }
 
 .form-record-header {
@@ -81,16 +92,6 @@ body {
    record header above already carries the gray strip. */
 .form-record .mantine-Table-thead {
   background-color: transparent;
-}
-
-.form-record .mantine-Table-th {
-  color: var(--mantine-color-dimmed);
-  font-weight: 600;
-}
-
-/* The total row is the record's bottom line, so it reads dark like a value. */
-.form-record .mantine-Table-tfoot .mantine-Table-th {
-  color: inherit;
 }
 
 /* The next section's rule closes the table, so its last row doesn't draw a second one. */

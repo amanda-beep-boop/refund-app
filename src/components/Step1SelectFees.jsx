@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Checkbox, Group, Paper, Stack, Table, Text, Title, VisuallyHidden } from '@mantine/core';
+import { ActionIcon, Box, Button, Checkbox, Group, Paper, Stack, Table, Text, Title, VisuallyHidden } from '@mantine/core';
 import { useRefund } from '../state/RefundContext';
 import { fmtDate } from '../lib/format';
 import { Mono, Amount, LumpSumAnnotation, Chevron, DisabledHint } from './shared';
@@ -23,7 +23,7 @@ export default function Step1SelectFees() {
           </Text>
         </Group>
         <Table.ScrollContainer minWidth={900}>
-          <Table verticalSpacing="sm">
+          <Table verticalSpacing="sm" horizontalSpacing="md" fz="sm" styles={{ td: { verticalAlign: 'top' } }}>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th w={44}>
@@ -32,14 +32,11 @@ export default function Step1SelectFees() {
                 <Table.Th w={40}>
                   <VisuallyHidden>Items</VisuallyHidden>
                 </Table.Th>
-                <Table.Th miw={240} w="30%">
+                <Table.Th miw={240} w="38%">
                   Fee
                 </Table.Th>
                 <Table.Th>Paid on</Table.Th>
-                <Table.Th>Bank</Table.Th>
-                <Table.Th>Account</Table.Th>
-                <Table.Th>Payment method</Table.Th>
-                <Table.Th>Card</Table.Th>
+                <Table.Th>Payment</Table.Th>
                 <Table.Th ta="right">Amount</Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -73,22 +70,26 @@ export default function Step1SelectFees() {
                       )}
                     </Table.Td>
                     <Table.Td>
-                      <Group gap={6} align="baseline" wrap="wrap">
-                        <Text component="label" htmlFor={checkboxId} fw={600} style={{ cursor: 'pointer' }}>
-                          {fee.desc}
-                        </Text>
-                        {fee.items && <LumpSumAnnotation count={fee.items.length} />}
-                      </Group>
-                      <Mono c="dimmed">{fee.id}</Mono>
+                      <Text component="label" htmlFor={checkboxId} inherit style={{ cursor: 'pointer' }}>
+                        {fee.desc}
+                      </Text>
+                      <Text inherit c="dimmed">
+                        Fee ID <Mono fz={13} c="inherit">{fee.id}</Mono>
+                      </Text>
+                      {fee.items && (
+                        <Box mt={4}>
+                          <LumpSumAnnotation count={fee.items.length} />
+                        </Box>
+                      )}
                     </Table.Td>
                     <Table.Td style={{ whiteSpace: 'nowrap' }}>{fmtDate(fee.date)}</Table.Td>
-                    <Table.Td style={{ whiteSpace: 'nowrap' }}>{fee.bank}</Table.Td>
                     <Table.Td>
-                      <Mono>{fee.acct}</Mono>
-                    </Table.Td>
-                    <Table.Td style={{ whiteSpace: 'nowrap' }}>{fee.method}</Table.Td>
-                    <Table.Td style={{ whiteSpace: 'nowrap' }}>
-                      <Mono>{fee.card}</Mono>
+                      <Text inherit>{fee.method}</Text>
+                      {paymentDetails(fee).map((line) => (
+                        <Text inherit c="dimmed" key={line}>
+                          {line}
+                        </Text>
+                      ))}
                     </Table.Td>
                     <Table.Td ta="right" style={{ whiteSpace: 'nowrap' }}>
                       <Amount cents={fee.cents} />
@@ -102,14 +103,14 @@ export default function Step1SelectFees() {
                           <Table.Td
                             style={{ paddingLeft: 22, borderLeft: '3px solid var(--border-strong)' }}
                           >
-                            <Text fz="sm">
+                            <Text inherit>
                               <VisuallyHidden>Item in {fee.desc}: </VisuallyHidden>
                               {item.desc}
                             </Text>
                           </Table.Td>
-                          <Table.Td colSpan={5} />
+                          <Table.Td colSpan={2} />
                           <Table.Td ta="right">
-                            <Amount cents={item.cents} fz="sm" />
+                            <Amount cents={item.cents} />
                           </Table.Td>
                         </Table.Tr>
                       ))
@@ -126,8 +127,8 @@ export default function Step1SelectFees() {
           <Text component="span" fw={600}>
             {selectedCount}
           </Text>{' '}
-          fee{selectedCount === 1 ? '' : 's'} selected ·{' '}
-          <Amount cents={eligibleCents} fw={600} /> eligible
+          fee{selectedCount === 1 ? '' : 's'} selected, totaling{' '}
+          <Amount cents={eligibleCents} fw={600} />
         </Text>
         <Stack gap={4} align="flex-end">
           <Button disabled={!selectedCount} onClick={() => setStep(2)} rightSection={<Chevron />}>
@@ -139,3 +140,14 @@ export default function Step1SelectFees() {
     </>
   );
 }
+
+// The card and the account a fee was paid from, each on its own line. Services such as PayPal
+// are their own "bank", so only the account (an email address) is shown for them. Numbers use
+// non-breaking spaces so they never split across lines.
+const paymentDetails = (fee) => {
+  const keep = (s) => s.replace(/ /g, '\u00a0');
+  return [
+    fee.card !== '—' && keep(fee.card),
+    fee.bank === fee.method ? fee.acct : `${fee.bank} account ${keep(fee.acct)}`,
+  ].filter(Boolean);
+};

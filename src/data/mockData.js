@@ -82,7 +82,6 @@ export const CUSTOMERS = {
           name: 'Metro Transit Authority – Accounts Payable',
           address: '600 Fifth St NW, Washington, DC 20001',
           method: 'original',
-          email: 'ap@mta.example',
         },
       },
       {
@@ -99,7 +98,6 @@ export const CUSTOMERS = {
           name: 'Marisol Ortega',
           address: '1400 Wilson Blvd, Suite 610, Arlington, VA 22209',
           method: 'original',
-          email: 'm.ortega@mta.example',
         },
       },
       {
@@ -121,7 +119,6 @@ export const CUSTOMERS = {
           name: 'Marisol Ortega',
           address: '1400 Wilson Blvd, Suite 610, Arlington, VA 22209',
           method: 'original',
-          email: 'm.ortega@mta.example',
         },
       },
       {
@@ -159,7 +156,6 @@ export const CUSTOMERS = {
           name: 'Devin Achterberg',
           address: '2100 Clarendon Blvd, Arlington, VA 22201',
           method: 'original',
-          email: 'd.achterberg@parks.example',
         },
       },
       {
@@ -181,7 +177,6 @@ export const CUSTOMERS = {
           name: 'Devin Achterberg',
           address: '2100 Clarendon Blvd, Arlington, VA 22201',
           method: 'original',
-          email: 'd.achterberg@parks.example',
         },
       },
     ],
@@ -207,24 +202,19 @@ export const CUSTOMERS = {
           name: 'Priya Raman',
           address: '3500 Fairfax Dr, Arlington, VA 22203',
           method: 'original',
-          email: 'p.raman@housing.example',
         },
       },
     ],
   },
 };
 
-const R = (name, address, method, email) => ({
-  name,
-  address,
-  method: method || 'original',
-  email: email || null,
-});
+const R = (name, address, method) => ({ name, address, method: method || 'original' });
 
-export const buildNotifications = (at, remitters, submitter = SUBMITTER) => [
+// E-Note notifies the submitter and the OCFO when a request is submitted. Remitters are never
+// notified: they don't interact with this application.
+export const buildNotifications = (at, submitter = SUBMITTER) => [
   { role: 'Submitter', name: submitter.name, to: submitter.email, at },
   { role: 'OCFO', name: OCFO.name, to: OCFO.email, at },
-  ...remitters.map((r) => ({ role: 'Remitter', name: r.name, to: r.email, at })),
 ];
 
 export const SEED_REQUESTS = [
@@ -252,8 +242,7 @@ export const SEED_REQUESTS = [
         remitter: R(
           'Devin Achterberg',
           '2100 Clarendon Blvd, Arlington, VA 22201',
-          'original',
-          'd.achterberg@parks.example'
+          'original'
         ),
         remitterSource: 'record',
         recordRemitter: null,
@@ -264,9 +253,7 @@ export const SEED_REQUESTS = [
       { status: 'review', at: '2026-06-20T09:30:00' },
       { status: 'approved', at: '2026-07-09T15:02:00' },
     ],
-    notifications: buildNotifications('2026-06-18T10:14:00', [
-      R('Devin Achterberg', '', '', 'd.achterberg@parks.example'),
-    ]),
+    notifications: buildNotifications('2026-06-18T10:14:00'),
   },
   {
     id: 'RR-2026-0151',
@@ -292,8 +279,7 @@ export const SEED_REQUESTS = [
         remitter: R(
           'Metro Transit Authority – Accounts Payable',
           '600 Fifth St NW, Washington, DC 20001',
-          'original',
-          'ap@mta.example'
+          'original'
         ),
         remitterSource: 'record',
         recordRemitter: null,
@@ -304,11 +290,7 @@ export const SEED_REQUESTS = [
       { status: 'review', at: '2026-07-03T11:12:00' },
       { status: 'approved', at: '2026-07-22T16:45:00' },
     ],
-    notifications: buildNotifications(
-      '2026-07-01T15:40:00',
-      [R('Metro Transit Authority – Accounts Payable', '', '', 'ap@mta.example')],
-      COLLEAGUES.okafor
-    ),
+    notifications: buildNotifications('2026-07-01T15:40:00', COLLEAGUES.okafor),
   },
   {
     id: 'RR-2026-0169',
@@ -334,8 +316,7 @@ export const SEED_REQUESTS = [
         remitter: R(
           'Devin Achterberg',
           '2100 Clarendon Blvd, Arlington, VA 22201',
-          'original',
-          'd.achterberg@parks.example'
+          'original'
         ),
         remitterSource: 'record',
         recordRemitter: null,
@@ -345,9 +326,7 @@ export const SEED_REQUESTS = [
       { status: 'submitted', at: '2026-07-24T09:02:00' },
       { status: 'review', at: '2026-07-28T13:20:00' },
     ],
-    notifications: buildNotifications('2026-07-24T09:02:00', [
-      R('Devin Achterberg', '', '', 'd.achterberg@parks.example'),
-    ]),
+    notifications: buildNotifications('2026-07-24T09:02:00'),
   },
   {
     id: 'RR-2026-0187',
@@ -373,15 +352,13 @@ export const SEED_REQUESTS = [
         remitter: R(
           'Marisol Ortega',
           '1400 Wilson Blvd, Suite 610, Arlington, VA 22209',
-          'check',
-          null
+          'check'
         ),
         remitterSource: 'customized',
         recordRemitter: R(
           'Metro Transit Authority – Accounts Payable',
           '600 Fifth St NW, Washington, DC 20001',
-          'original',
-          'ap@mta.example'
+          'original'
         ),
       },
     ],
@@ -389,11 +366,7 @@ export const SEED_REQUESTS = [
       { status: 'submitted', at: '2026-08-11T14:22:00' },
       { status: 'review', at: '2026-08-14T09:05:00' },
     ],
-    notifications: buildNotifications(
-      '2026-08-11T14:22:00',
-      [R('Marisol Ortega', '', 'check', null)],
-      COLLEAGUES.lindqvist
-    ),
+    notifications: buildNotifications('2026-08-11T14:22:00', COLLEAGUES.lindqvist),
   },
   {
     id: 'RR-2026-0203',
@@ -419,7 +392,7 @@ export const SEED_REQUESTS = [
         method: 'Credit card',
         card: 'Amex ••••1009',
         instrument: 'Amex ••••1009',
-        remitter: R('Priya Raman', '3500 Fairfax Dr, Arlington, VA 22203', 'original', null),
+        remitter: R('Priya Raman', '3500 Fairfax Dr, Arlington, VA 22203', 'original'),
         remitterSource: 'manual',
         recordRemitter: null,
       },
@@ -434,11 +407,7 @@ export const SEED_REQUESTS = [
           'The remitter address on this request (3500 Fairfax Dr, Arlington, VA 22203) does not match the W-9 we have on file for Priya Raman, which lists a Falls Church address dated March 2026. We can’t issue a refund to an address that differs from the W-9 without documentation.\n\nPlease either update the remitter to the address on the W-9, or attach proof of the new address (a utility bill or updated W-9 dated within the last 90 days) and resubmit. Once it’s resubmitted, the request keeps its place in the review queue.',
       },
     ],
-    notifications: buildNotifications(
-      '2026-09-02T11:30:00',
-      [R('Priya Raman', '', '', null)],
-      COLLEAGUES.okafor
-    ),
+    notifications: buildNotifications('2026-09-02T11:30:00', COLLEAGUES.okafor),
   },
   {
     id: 'RR-2026-0205',
@@ -464,16 +433,13 @@ export const SEED_REQUESTS = [
         remitter: R(
           'Devin Achterberg',
           '2100 Clarendon Blvd, Arlington, VA 22201',
-          'original',
-          'd.achterberg@parks.example'
+          'original'
         ),
         remitterSource: 'record',
         recordRemitter: null,
       },
     ],
     timeline: [{ status: 'submitted', at: '2026-09-19T16:05:00' }],
-    notifications: buildNotifications('2026-09-19T16:05:00', [
-      R('Devin Achterberg', '', '', 'd.achterberg@parks.example'),
-    ]),
+    notifications: buildNotifications('2026-09-19T16:05:00'),
   },
 ].map((r) => ({ ...r, total: r.fees.reduce((s, f) => s + f.refund, 0) }));

@@ -62,10 +62,14 @@ export const FieldLabel = ({ children, ...props }) => (
   </Text>
 );
 
+// A label above its value. Values are 14px; pass several lines as children with the first dark
+// and any details after it gray (<Text inherit c="dimmed">).
 export const Field = ({ label, children }) => (
   <div>
     <FieldLabel>{label}</FieldLabel>
-    <Text component="div">{children}</Text>
+    <Text component="div" fz="sm" mt={2}>
+      {children}
+    </Text>
   </div>
 );
 

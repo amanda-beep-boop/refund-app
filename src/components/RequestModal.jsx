@@ -1,62 +1,25 @@
-import {
-  Anchor,
-  Box,
-  Button,
-  Group,
-  List,
-  Modal,
-  Stack,
-  Table,
-  Text,
-  Timeline,
-  Title,
-} from '@mantine/core';
+import { Anchor, Box, Button, Group, Modal, Stack, Text, Timeline, Title } from '@mantine/core';
 import { useRefund } from '../state/RefundContext';
-import { CUSTOMERS, JUSTIFICATION_LABEL } from '../data/mockData';
 import { STATUS_META } from '../theme';
-import { fmtDate, fmtDateTime } from '../lib/format';
-import {
-  remitterNotes,
-  requestActivity,
-  justificationDefinition,
-  paidLabel,
-  refundMethodLabel,
-  refundExtentLabel,
-  enoteTitle,
-} from '../lib/selectors';
+import { fmtDateTime } from '../lib/format';
+import { requestActivity, enoteTitle } from '../lib/selectors';
 import { downloadRequestPdf } from '../lib/exports';
-import {
-  StatusBadge,
-  Mono,
-  Amount,
-  FieldLabel,
-  NotificationList,
-  RemitterSourceAnnotation,
-  LumpSumAnnotation,
-} from './shared';
+import { StatusBadge, Mono, NotificationList } from './shared';
+import RequestRecord from './RequestRecord';
 
-// The modal is a living record: a snapshot of what was submitted, then Activity (everything after
-// submission), which keeps growing below it. Type rules for the whole modal: section headings
-// 16/600; labels 14/600 gray; values 14/400 dark; details 14/400 in the same gray; weight
-// otherwise only on event titles and the total.
+// The modal is a living record: a snapshot of what was submitted (RequestRecord), then Activity
+// (everything after submission), which keeps growing below it. Activity follows the record's
+// type rules, with weight also on event titles.
 export default function RequestModal({ requestId, onClose }) {
   const { requests } = useRefund();
   const request = requests.find((r) => r.id === requestId);
   if (!request) return <Modal opened={false} onClose={onClose} />;
 
-  const c = CUSTOMERS[request.customer];
-  const notes = remitterNotes(
-    request.fees,
-    (f) => f.remitterSource,
-    (f) => f.recordRemitter
-  );
   // A note on the current status (e.g. why it was returned) is what the analyst has to act on.
   // It lives in Activity; a pinned notice at the top links to it.
   const latest = request.timeline[request.timeline.length - 1];
   const leadNote = latest.note ? latest : null;
   const events = requestActivity(request);
-  const { code, text } = request.justification;
-  const definition = justificationDefinition(request.justification);
 
   return (
     <Modal
@@ -75,150 +38,7 @@ export default function RequestModal({ requestId, onClose }) {
       <Stack gap="lg">
         {leadNote && <PinnedNotice event={leadNote} />}
 
-        <section className="form-record" aria-labelledby="submitted-request-heading">
-          <div className="form-record-header">
-            <Title order={3} fz="md" id="submitted-request-heading">
-              Submitted request
-            </Title>
-          </div>
-
-          <div className="form-record-fields">
-            <RecordField label="Customer">
-              <Text inherit>{c.name}</Text>
-              <Text inherit c="dimmed">
-                Customer ID <Mono fz={13} c="inherit">{c.id}</Mono>
-              </Text>
-              <Text inherit c="dimmed">
-                {c.team}, {c.position}
-              </Text>
-            </RecordField>
-            <RecordField label="Requested by">
-              <Text inherit>{request.submittedBy.name}</Text>
-              <Text inherit c="dimmed">
-                {request.submittedBy.email}
-              </Text>
-            </RecordField>
-          </div>
-
-          <div className="form-record-section form-record-pad">
-            <RecordField label="Justification">
-              <Text inherit>{JUSTIFICATION_LABEL[code]}</Text>
-              <Text inherit c="dimmed" className="readable">
-                Definition at the time of submission: {definition}
-              </Text>
-              {text && (
-                <>
-                  <FieldLabel mt="sm">
-                    Submitter’s explanation
-                  </FieldLabel>
-                  <Text inherit className="readable">
-                    {text}
-                  </Text>
-                </>
-              )}
-            </RecordField>
-          </div>
-
-          <div className="form-record-section">
-            <Table.ScrollContainer minWidth={760} type="native">
-              {/* Invoice layout: refunds sit in the last column so they line up with the total. */}
-              <Table
-                verticalSpacing="sm"
-                horizontalSpacing="md"
-                fz="sm"
-                styles={{ td: { verticalAlign: 'top' } }}
-              >
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th w="26%">Fee</Table.Th>
-                    <Table.Th w="22%">Paid</Table.Th>
-                    <Table.Th>Refund to</Table.Th>
-                    <Table.Th ta="right" w={140}>
-                      Refund
-                    </Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {request.fees.map((f) => (
-                    <Table.Tr key={f.id}>
-                      <Table.Td>
-                        <Text inherit>{f.desc}</Text>
-                        <Text inherit c="dimmed">
-                          Fee ID <Mono fz={13} c="inherit">{f.id}</Mono>
-                        </Text>
-                        {f.items && (
-                          <Box mt={4}>
-                            <LumpSumAnnotation count={f.items.length} />
-                          </Box>
-                        )}
-                      </Table.Td>
-                      <Table.Td>
-                        <Text inherit style={{ whiteSpace: 'nowrap' }}>
-                          {fmtDate(f.date)}
-                        </Text>
-                        <Text inherit c="dimmed">
-                          {paidLabel(f)}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text inherit>{f.remitter.name}</Text>
-                        <Text inherit c="dimmed">
-                          {f.remitter.address}
-                        </Text>
-                        <Text inherit c="dimmed">
-                          {refundMethodLabel(f)}
-                        </Text>
-                        {f.remitterSource !== 'record' && (
-                          <Box mt={4}>
-                            <RemitterSourceAnnotation source={f.remitterSource} />
-                          </Box>
-                        )}
-                      </Table.Td>
-                      <Table.Td ta="right">
-                        <Amount cents={f.refund} />
-                        <Text inherit c="dimmed">
-                          {refundExtentLabel(f)}
-                        </Text>
-                      </Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Table.Tbody>
-                <Table.Tfoot>
-                  <Table.Tr>
-                    <Table.Th colSpan={3} scope="row" ta="right">
-                      Total refund requested
-                    </Table.Th>
-                    <Table.Td ta="right">
-                      <Amount cents={request.total} fw={600} />
-                    </Table.Td>
-                  </Table.Tr>
-                </Table.Tfoot>
-              </Table>
-            </Table.ScrollContainer>
-          </div>
-
-          {notes.length > 0 && (
-            <div className="form-record-section form-record-pad">
-              <FieldLabel>Remitter notes</FieldLabel>
-              <List spacing={4} fz="sm" mt={4} className="readable">
-                {notes.map((n) => (
-                  <List.Item key={n.feeId}>
-                    <Mono fz={13}>{n.feeId}</Mono>: {n.text}
-                  </List.Item>
-                ))}
-              </List>
-            </div>
-          )}
-
-          <div className="form-record-footer">
-            <FieldLabel>Certification</FieldLabel>
-            <Text fz="sm">
-              Certified and submitted by {request.submittedBy.name} on{' '}
-              {fmtDateTime(request.certifiedAt)}. Routed to the Office of the Chief Financial
-              Officer (OCFO), Refund Review.
-            </Text>
-          </div>
-        </section>
+        <RequestRecord request={request} />
 
         <section aria-labelledby="activity-heading">
           <Title order={3} fz="md" mb="sm" id="activity-heading">
@@ -364,13 +184,3 @@ const StatusNote = ({ id, status, at, children }) => {
     </Box>
   );
 };
-
-// A label above its value lines. Children are the lines: the first dark, the rest gray.
-const RecordField = ({ label, children }) => (
-  <div>
-    <FieldLabel>{label}</FieldLabel>
-    <Text component="div" fz="sm" mt={2}>
-      {children}
-    </Text>
-  </div>
-);

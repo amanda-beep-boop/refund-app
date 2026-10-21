@@ -38,8 +38,9 @@ remitter on file (manual entry required), and partial refunds.
    entered when the record has none. One request-level justification.
 4. **Review & submit** — full summary, remitter notes, legal certification (placeholder
    wording), simulated digital submission.
-5. **Confirmation** — permanent request ID, notification fan-out (submitter, OCFO, each
-   remitter), and the new row in the history table as "Submitted to OCFO".
+5. **Confirmation** — permanent request ID, the E-Note emails sent (to the submitter and the
+   OCFO; remitters are never notified), and the new row in the history table as "Submitted
+   to OCFO".
 6. **Request record** — the modal behind each request ID is a living record. On top, a
    snapshot of what was submitted, laid out like an invoice: customer and requester, the
    justification with its definition as it stood at submission, fees with explicit refund

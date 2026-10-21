@@ -1,6 +1,6 @@
 import { Button, Divider, Group, Paper, SimpleGrid, Stack, Stepper, Text, Title } from '@mantine/core';
 import { useRefund } from '../state/RefundContext';
-import { accountAge } from '../lib/format';
+import { accountAge, fmtDate } from '../lib/format';
 import { Mono, Field, Breadcrumb, DiscardDraftButton } from './shared';
 import Step1SelectFees from './Step1SelectFees';
 import Step2Details from './Step2Details';
@@ -42,11 +42,19 @@ export default function FlowPage() {
       <Paper bg="brand.0" radius="sm" p="md">
         <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
           <Field label="Customer">
-            {customer.name} <Mono>{customer.id}</Mono>
+            <Text inherit>{customer.name}</Text>
+            <Text inherit c="dimmed">
+              Customer ID <Mono fz={13} c="inherit">{customer.id}</Mono>
+            </Text>
           </Field>
           <Field label="Team">{customer.team}</Field>
           <Field label="Position">{customer.position}</Field>
-          <Field label="Account age">{accountAge(customer.accountOpened)}</Field>
+          <Field label="Account age">
+            <Text inherit>{accountAge(customer.accountOpened)}</Text>
+            <Text inherit c="dimmed">
+              Since {fmtDate(customer.accountOpened)}
+            </Text>
+          </Field>
         </SimpleGrid>
       </Paper>
 

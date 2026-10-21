@@ -1,20 +1,13 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import { notifications } from '@mantine/notifications';
-import {
-  CUSTOMERS,
-  SEED_REQUESTS,
-  SUBMITTER,
-  JUSTIFICATION_DEFINITION,
-  buildNotifications,
-} from '../data/mockData';
+import { SEED_REQUESTS, buildNotifications } from '../data/mockData';
 import { nowISO } from '../lib/format';
 import {
   draftCustomer,
   selectedFees,
   initialFeeState,
-  remitterSource,
-  refundCents,
   draftTotal,
+  draftRequest,
 } from '../lib/selectors';
 
 const RefundContext = createContext(null);
@@ -98,7 +91,6 @@ export function RefundProvider({ children }) {
       name: fee.remitter.name,
       address: fee.remitter.address,
       method: fee.remitter.method,
-      email: fee.remitter.email,
       editing: false,
       touched: false,
     });
@@ -115,62 +107,18 @@ export function RefundProvider({ children }) {
     // Simulated latency of the digital submission to the OCFO.
     setTimeout(() => {
       {
-        const customer = CUSTOMERS[d.customer];
         const at = nowISO();
         const id = `RR-2026-${String(nextSeq).padStart(4, '0')}`;
-        const fees = customer.fees
-          .filter((f) => d.selected.has(f.id))
-          .map((f) => {
-            const r = d.remitters[f.id];
-            const src = remitterSource(f, d);
-            return {
-              id: f.id,
-              desc: f.desc,
-              date: f.date,
-              cents: f.cents,
-              refund: refundCents(f, d),
-              bank: f.bank,
-              acct: f.acct,
-              method: f.method,
-              card: f.card,
-              instrument: f.instrument,
-              items: f.items || null,
-              remitter: {
-                name: r.name.trim(),
-                address: r.address.trim(),
-                method: r.method,
-                email: f.remitter && r.name.trim() === f.remitter.name ? f.remitter.email : null,
-              },
-              remitterSource: src,
-              recordRemitter: f.remitter ? { ...f.remitter } : null,
-            };
-          });
-        const seen = new Set();
-        const remitters = fees
-          .map((f) => f.remitter)
-          .filter((r) => {
-            const key = `${r.name}|${r.address}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
+        const base = draftRequest(d);
         const request = {
+          ...base,
           id,
-          customer: customer.id,
           submittedAt: at,
           status: 'submitted',
           statusDate: at.slice(0, 10),
-          submittedBy: SUBMITTER,
           certifiedAt: at,
-          justification: {
-            ...d.justification,
-            text: d.justification.text.trim(),
-            definition: JUSTIFICATION_DEFINITION[d.justification.code],
-          },
-          fees,
-          total: fees.reduce((s, f) => s + f.refund, 0),
           timeline: [{ status: 'submitted', at }],
-          notifications: buildNotifications(at, remitters),
+          notifications: buildNotifications(at),
         };
         setRequests((rs) => [...rs, request]);
         setNextSeq((n) => n + 1);

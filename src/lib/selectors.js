@@ -1,11 +1,11 @@
-import { CUSTOMERS, JUSTIFICATION_DEFINITION } from '../data/mockData';
+import { CUSTOMERS, SUBMITTER, JUSTIFICATION_DEFINITION } from '../data/mockData';
 import { parseCents, dollars, fmt, methodLabel } from './format';
 
 // Pure helpers over the draft shape:
 // draft = {
 //   customer: 'C-...', selected: Set<feeId>, collapsed: Set<feeId>,
 //   amounts: { [feeId]: { mode: 'full'|'partial', input: '12.34' } },
-//   remitters: { [feeId]: { editing, touched, name, address, method, email } },
+//   remitters: { [feeId]: { editing, touched, name, address, method } },
 //   justification: { code, text }, certified: bool, startedAt: iso,
 // }
 
@@ -23,9 +23,8 @@ export const initialFeeState = (fee) => ({
         name: fee.remitter.name,
         address: fee.remitter.address,
         method: fee.remitter.method,
-        email: fee.remitter.email,
       }
-    : { editing: true, touched: false, name: '', address: '', method: 'original', email: null },
+    : { editing: true, touched: false, name: '', address: '', method: 'original' },
 });
 
 export const remitterSource = (fee, draft) => {
@@ -84,10 +83,49 @@ export const remitterNotes = (fees, getSource, getRecord) =>
       const o = getRecord(f);
       return {
         feeId: f.id,
-        text: `Remitter changed from the payment record by the submitter. Record shows: ${o.name}, ${o.address}, ${methodLabel(f, o.method)}.`,
+        text: `Remitter changed from the payment record by the submitter. Record shows: ${o.name}, ${o.address}; refund method: ${methodLabel(f, o.method)}.`,
       };
     })
     .filter(Boolean);
+
+// The request a draft would become, minus what only exists once it's sent (ID, timestamps,
+// timeline, notifications). Submission builds on this, and Step 3 previews it, so what the
+// analyst certifies is exactly what gets recorded.
+export const draftRequest = (draft) => {
+  const customer = CUSTOMERS[draft.customer];
+  const fees = customer.fees
+    .filter((f) => draft.selected.has(f.id))
+    .map((f) => {
+      const r = draft.remitters[f.id];
+      return {
+        id: f.id,
+        desc: f.desc,
+        date: f.date,
+        cents: f.cents,
+        refund: refundCents(f, draft),
+        bank: f.bank,
+        acct: f.acct,
+        method: f.method,
+        card: f.card,
+        instrument: f.instrument,
+        items: f.items || null,
+        remitter: { name: r.name.trim(), address: r.address.trim(), method: r.method },
+        remitterSource: remitterSource(f, draft),
+        recordRemitter: f.remitter ? { ...f.remitter } : null,
+      };
+    });
+  return {
+    customer: customer.id,
+    submittedBy: SUBMITTER,
+    justification: {
+      ...draft.justification,
+      text: draft.justification.text.trim(),
+      definition: JUSTIFICATION_DEFINITION[draft.justification.code],
+    },
+    fees,
+    total: fees.reduce((s, f) => s + f.refund, 0),
+  };
+};
 
 // Wording for a submitted request's record. Shared by the request modal and its PDF so the two
 // always say the same thing; stated literally, since the record is used for legal purposes.
@@ -96,15 +134,12 @@ export const remitterNotes = (fees, getSource, getRecord) =>
 export const paidLabel = (f) =>
   `${fmt(f.cents)} by ${f.method}${f.card !== '—' ? ` ${f.card.replace(/ /g, ' ')}` : ''}`;
 
-export const refundMethodLabel = (f) =>
-  f.remitter.method === 'check'
-    ? 'Refund method: paper check mailed to this address'
-    : `Refund method: returned to the original payment, ${f.instrument}`;
+export const refundMethodLabel = (f, method = f.remitter.method) =>
+  `Refund method: ${methodLabel(f, method)}`;
 
 export const refundExtentLabel = (f) => (f.refund < f.cents ? 'Partial refund' : 'Full refund');
 
-export const deliveryLabel = (n) =>
-  n.to ? `Emailed to ${n.to}` : 'Mailed to the remittance address (no email on file)';
+export const deliveryLabel = (n) => `Emailed to ${n.to}`;
 
 // Requests store the definition in force when they were certified; older records predate that,
 // so they fall back to the current one.
